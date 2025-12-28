@@ -16,6 +16,19 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- User Type -->
+        <div class="mt-4">
+            <x-input-label for="user_type" :value="__('I am registering as')" />
+            <select id="user_type" name="user_type" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                <option value="">Select user type</option>
+                <option value="donor" {{ old('user_type') == 'donor' ? 'selected' : '' }}>Donor - I want to donate</option>
+                <option value="ngo" {{ old('user_type') == 'ngo' ? 'selected' : '' }}>NGO - I represent an organization</option>
+                <option value="user" {{ old('user_type') == 'user' ? 'selected' : '' }}>User - I need help</option>
+                <option value="staff" {{ old('user_type') == 'staff' ? 'selected' : '' }}>Staff</option>
+            </select>
+            <x-input-error :messages="$errors->get('user_type')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
