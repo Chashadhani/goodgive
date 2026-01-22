@@ -15,9 +15,9 @@ Route::get('/ngos-posts', function () {
     return view('ngos-posts');
 })->name('ngos-posts');
 
-Route::get('/individual-posts', function () {
-    return view('individual-posts');
-})->name('individual-posts');
+Route::get('/our-work', function () {
+    return view('our-work');
+})->name('our-work');
 
 Route::get('/about-us', function () {
     return view('about-us');
@@ -26,6 +26,19 @@ Route::get('/about-us', function () {
 Route::get('/join-staff', function () {
     return view('join-staff');
 })->name('join-staff');
+
+// Registration Routes
+Route::get('/register/donor', function () {
+    return view('auth.donor-register');
+})->name('donor.register');
+
+Route::get('/register/ngo', function () {
+    return view('auth.ngo-register');
+})->name('ngo.register');
+
+Route::get('/register/recipient', function () {
+    return view('auth.recipient-register');
+})->name('recipient.register');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

@@ -19,8 +19,8 @@
                 <a href="{{ route('ngos-posts') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
                     NGO Posts
                 </a>
-                <a href="{{ route('individual-posts') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Individual Posts
+                <a href="{{ route('our-work') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Our Work
                 </a>
                 <a href="{{ route('about-us') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
                     About Us
@@ -105,8 +105,8 @@
                 <a href="{{ route('ngos-posts') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
                     NGO Posts
                 </a>
-                <a href="{{ route('individual-posts') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Individual Posts
+                <a href="{{ route('our-work') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
+                    Our-work
                 </a>
                 <a href="{{ route('about-us') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
                     About Us
