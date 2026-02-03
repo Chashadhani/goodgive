@@ -24,17 +24,32 @@ class HelpRequest extends Model
         'admin_notes',
         'approved_at',
         'fulfilled_at',
+        'reviewed_by',
+        'reviewed_at',
+        'completed_at',
     ];
 
     protected $casts = [
         'amount_needed' => 'decimal:2',
         'approved_at' => 'datetime',
         'fulfilled_at' => 'datetime',
+        'reviewed_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(HelpCategory::class, 'category', 'slug');
     }
 
     public function isPending(): bool
@@ -57,6 +72,11 @@ class HelpRequest extends Model
         return $this->status === 'fulfilled';
     }
 
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
     public function isRejected(): bool
     {
         return $this->status === 'rejected';
@@ -71,6 +91,7 @@ class HelpRequest extends Model
             'food' => 'Food Security',
             'clothing' => 'Clothing',
             'emergency' => 'Emergency Relief',
+            'livelihood' => 'Livelihood',
             'other' => 'Other',
             default => $this->category,
         };
@@ -80,7 +101,7 @@ class HelpRequest extends Model
     {
         return match($this->urgency) {
             'low' => 'Low',
-            'normal' => 'Normal',
+            'medium' => 'Medium',
             'high' => 'High',
             'critical' => 'Critical',
             default => $this->urgency,
@@ -90,8 +111,8 @@ class HelpRequest extends Model
     public function getUrgencyColorAttribute(): string
     {
         return match($this->urgency) {
-            'low' => 'gray',
-            'normal' => 'blue',
+            'low' => 'green',
+            'medium' => 'yellow',
             'high' => 'orange',
             'critical' => 'red',
             default => 'gray',
@@ -101,12 +122,13 @@ class HelpRequest extends Model
     public function getStatusColorAttribute(): string
     {
         return match($this->status) {
-            'pending' => 'orange',
-            'approved' => 'green',
-            'in_progress' => 'blue',
-            'fulfilled' => 'indigo',
-            'rejected' => 'red',
-            default => 'gray',
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'approved' => 'bg-green-100 text-green-800',
+            'in_progress' => 'bg-blue-100 text-blue-800',
+            'completed' => 'bg-indigo-100 text-indigo-800',
+            'fulfilled' => 'bg-indigo-100 text-indigo-800',
+            'rejected' => 'bg-red-100 text-red-800',
+            default => 'bg-gray-100 text-gray-800',
         };
     }
 }
