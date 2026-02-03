@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('phone');
             $table->string('location');
-            $table->enum('need_category', ['education', 'healthcare', 'shelter', 'food', 'clothing', 'emergency', 'other']);
-            $table->text('description');
+            $table->enum('need_category', ['education', 'healthcare', 'shelter', 'food', 'clothing', 'emergency', 'other'])->nullable();
+            $table->text('description')->nullable();
             $table->string('documents')->nullable(); // Store file paths
             $table->enum('status', ['pending', 'approved', 'assisted', 'rejected'])->default('pending');
             $table->text('rejection_reason')->nullable();
