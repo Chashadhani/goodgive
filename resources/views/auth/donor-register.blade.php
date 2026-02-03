@@ -97,34 +97,49 @@
                     <p class="text-gray-600">Start your journey of giving</p>
                 </div>
 
-                <form action="#" method="POST" class="space-y-5">
+                <!-- Validation Errors -->
+                @if ($errors->any())
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                        <ul class="list-disc list-inside text-sm text-red-600">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('donor.register') }}" method="POST" class="space-y-5">
                     @csrf
 
                     <!-- Full Name -->
                     <div>
                         <label for="full_name" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Full Name
+                            Full Name <span class="text-red-500">*</span>
                         </label>
                         <input 
                             type="text" 
                             id="full_name" 
                             name="full_name" 
+                            value="{{ old('full_name') }}"
                             placeholder="Enter your full name"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition @error('full_name') border-red-500 @enderror"
                         >
                     </div>
 
                     <!-- Email Address -->
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
+                            Email Address <span class="text-red-500">*</span>
                         </label>
                         <input 
                             type="email" 
                             id="email" 
                             name="email" 
+                            value="{{ old('email') }}"
                             placeholder="your.email@example.com"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition @error('email') border-red-500 @enderror"
                         >
                     </div>
 
@@ -137,6 +152,7 @@
                             type="tel" 
                             id="mobile" 
                             name="mobile" 
+                            value="{{ old('mobile') }}"
                             placeholder="+94"
                             class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition"
                         >
@@ -151,6 +167,7 @@
                             type="text" 
                             id="address" 
                             name="address" 
+                            value="{{ old('address') }}"
                             placeholder="Your residential address"
                             class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition"
                         >
@@ -159,7 +176,7 @@
                     <!-- Password -->
                     <div>
                         <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Password
+                            Password <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <input 
@@ -167,7 +184,8 @@
                                 id="password" 
                                 name="password" 
                                 placeholder="••••••••"
-                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition pr-12"
+                                required
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition pr-12 @error('password') border-red-500 @enderror"
                             >
                             <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                 👁️
@@ -178,7 +196,7 @@
                     <!-- Confirm Password -->
                     <div>
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Confirm Password
+                            Confirm Password <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <input 
@@ -186,6 +204,7 @@
                                 id="password_confirmation" 
                                 name="password_confirmation" 
                                 placeholder="••••••••"
+                                required
                                 class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white transition pr-12"
                             >
                             <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -200,6 +219,7 @@
                             type="checkbox" 
                             id="terms" 
                             name="terms"
+                            required
                             class="mt-1 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                         >
                         <label for="terms" class="text-sm text-gray-600">

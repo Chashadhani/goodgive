@@ -1,6 +1,13 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HelpRequestController;
+use App\Http\Controllers\Auth\DonorRegisterController;
+use App\Http\Controllers\Auth\NgoRegisterController;
+use App\Http\Controllers\Auth\RecipientRegisterController;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\NgoVerificationController;
+use App\Http\Controllers\Admin\UserVerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,58 +34,130 @@ Route::get('/join-staff', function () {
     return view('join-staff');
 })->name('join-staff');
 
-// Registration Routes
-Route::get('/register/donor', function () {
-    return view('auth.donor-register');
-})->name('donor.register');
+// Registration Routes (Guest Only) - Only for Donor, NGO, Recipient
+Route::middleware('guest')->group(function () {
+    // Donor Registration
+    Route::get('/register/donor', [DonorRegisterController::class, 'create'])->name('donor.register');
+    Route::post('/register/donor', [DonorRegisterController::class, 'store']);
 
-Route::get('/register/ngo', function () {
-    return view('auth.ngo-register');
-})->name('ngo.register');
+    // NGO Registration
+    Route::get('/register/ngo', [NgoRegisterController::class, 'create'])->name('ngo.register');
+    Route::post('/register/ngo', [NgoRegisterController::class, 'store']);
 
-Route::get('/register/recipient', function () {
-    return view('auth.recipient-register');
-})->name('recipient.register');
+    // Recipient Registration
+    Route::get('/register/recipient', [RecipientRegisterController::class, 'create'])->name('recipient.register');
+    Route::post('/register/recipient', [RecipientRegisterController::class, 'store']);
+});
 
+// Generic Dashboard redirect (for compatibility)
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    $user = auth()->user();
+    // Admin/Staff go to admin panel
+    if (in_array($user->user_type, ['admin', 'staff'])) {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route($user->getDashboardRoute());
+})->middleware(['auth'])->name('dashboard');
 
-// Admin Routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+// =========================================
+// ADMIN PANEL ROUTES (Admin & Staff only)
+// =========================================
+Route::prefix('admin')->name('admin.')->group(function () {
+    // Admin Login (Guest only)
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+        Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    });
+
+    // Admin Logout
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout')->middleware('auth');
+    
+    // Admin Panel Pages (Admin & Staff can access)
+    Route::middleware(['auth', 'role:admin,staff'])->group(function () {
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        })->name('dashboard');
+        
+        // NGO verification
+        Route::get('/ngos', [NgoVerificationController::class, 'index'])->name('ngos.index');
+        Route::get('/ngos/{user}', [NgoVerificationController::class, 'show'])->name('ngos.show');
+        Route::patch('/ngos/{user}/verify', [NgoVerificationController::class, 'verify'])->name('ngos.verify');
+        Route::patch('/ngos/{user}/reject', [NgoVerificationController::class, 'reject'])->name('ngos.reject');
+        Route::patch('/ngos/{user}/pending', [NgoVerificationController::class, 'pending'])->name('ngos.pending');
+        
+        // User (Recipients) account verification
+        Route::get('/users', [UserVerificationController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserVerificationController::class, 'show'])->name('users.show');
+        Route::patch('/users/{user}/approve', [UserVerificationController::class, 'approve'])->name('users.approve');
+        Route::patch('/users/{user}/reject', [UserVerificationController::class, 'reject'])->name('users.reject');
+        Route::patch('/users/{user}/pending', [UserVerificationController::class, 'pending'])->name('users.pending');
+        
+        // Help Requests (placeholder for now)
+        Route::get('/requests', function () {
+            return view('admin.requests.index');
+        })->name('requests.index');
+    });
+});
+
+// =========================================
+// NGO ROUTES (role: ngo)
+// =========================================
+Route::middleware(['auth', 'role:ngo'])->prefix('ngo')->name('ngo.')->group(function () {
     Route::get('/dashboard', function () {
-        return view('admin.dashboard');
+        return view('ngo.dashboard');
     })->name('dashboard');
-});
-
-// Staff Routes
-Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('staff.dashboard');
-    })->name('dashboard');
-});
-
-// User Routes (those who need help)
-Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
-    Route::get('/eligibility-forum', function () {
-        return view('users.eligibility-forum');
-    })->name('eligibility-forum');
-});
-
-// NGO Routes
-Route::middleware(['auth'])->prefix('ngo')->name('ngo.')->group(function () {
+    
     Route::get('/post-request', function () {
         return view('ngo.post-request');
     })->name('post-request');
+    
+    Route::get('/requests', function () {
+        return view('ngo.requests');
+    })->name('requests');
 });
 
-// Donor Routes
-Route::middleware(['auth'])->prefix('donor')->name('donor.')->group(function () {
+// =========================================
+// DONOR ROUTES (role: donor)
+// =========================================
+Route::middleware(['auth', 'role:donor'])->prefix('donor')->name('donor.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('donors.dashboard');
+    })->name('dashboard');
+    
     Route::get('/donations', function () {
         return view('donors.donations');
     })->name('donations');
+    
+    Route::get('/history', function () {
+        return view('donors.history');
+    })->name('history');
 });
 
+// =========================================
+// RECIPIENT ROUTES (role: user - those who need help)
+// =========================================
+Route::middleware(['auth', 'role:user'])->prefix('recipient')->name('recipient.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('users.dashboard');
+    })->name('dashboard');
+    
+    Route::get('/eligibility-forum', function () {
+        return view('users.eligibility-forum');
+    })->name('eligibility-forum');
+    
+    // Help Requests - using resource controller
+    Route::get('/requests', [HelpRequestController::class, 'index'])->name('requests.index');
+    Route::get('/requests/create', [HelpRequestController::class, 'create'])->name('requests.create');
+    Route::post('/requests', [HelpRequestController::class, 'store'])->name('requests.store');
+    Route::get('/requests/{helpRequest}', [HelpRequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{helpRequest}/edit', [HelpRequestController::class, 'edit'])->name('requests.edit');
+    Route::put('/requests/{helpRequest}', [HelpRequestController::class, 'update'])->name('requests.update');
+    Route::delete('/requests/{helpRequest}', [HelpRequestController::class, 'destroy'])->name('requests.destroy');
+});
+
+// =========================================
+// PROFILE ROUTES (All authenticated users)
+// =========================================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request Assistance - {{ config('app.name', 'GoodGive') }}</title>
+    <title>Create Account - {{ config('app.name', 'GoodGive') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -37,11 +37,11 @@
             <div class="space-y-8">
                 <div>
                     <h1 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                        Request<br>Assistance
+                        Need Help?<br>Create Account
                     </h1>
                     <div class="border-b-4 border-indigo-500 w-20 mb-6"></div>
                     <p class="text-lg text-gray-700">
-                        Submit your request and we'll connect you with verified NGOs who can help.
+                        Create your account to get started. Once approved, you can submit help requests.
                     </p>
                 </div>
 
@@ -54,8 +54,8 @@
                             1
                         </div>
                         <div>
-                            <p class="font-semibold text-gray-900">Submit Your Request</p>
-                            <p class="text-sm text-gray-600">Fill out the form with your details</p>
+                            <p class="font-semibold text-gray-900">Create Your Account</p>
+                            <p class="text-sm text-gray-600">Fill out the form with your basic details</p>
                         </div>
                     </div>
 
@@ -64,8 +64,8 @@
                             2
                         </div>
                         <div>
-                            <p class="font-semibold text-gray-900">NGO Review</p>
-                            <p class="text-sm text-gray-600">Verified NGOs review your request</p>
+                            <p class="font-semibold text-gray-900">Account Approval</p>
+                            <p class="text-sm text-gray-600">Admin verifies your account</p>
                         </div>
                     </div>
 
@@ -74,42 +74,56 @@
                             3
                         </div>
                         <div>
+                            <p class="font-semibold text-gray-900">Submit Help Requests</p>
+                            <p class="text-sm text-gray-600">Once approved, create requests from your dashboard</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                            4
+                        </div>
+                        <div>
                             <p class="font-semibold text-gray-900">Get Assistance</p>
-                            <p class="text-sm text-gray-600">Receive help from caring donors</p>
+                            <p class="text-sm text-gray-600">Receive help from caring donors through NGOs</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Important Notice -->
-                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
                     <div class="flex items-start space-x-3">
-                        <div class="text-3xl">⚠️</div>
+                        <div class="text-3xl">ℹ️</div>
                         <div>
-                            <h3 class="font-bold text-gray-900 mb-2">Important Notice</h3>
-                            <ul class="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                                <li>Requests are processed through registered NGOs</li>
-                                <li>Verification may be required</li>
-                                <li>Response time varies by availability</li>
-                                <li>All information is kept confidential</li>
-                            </ul>
+                            <h3 class="font-bold text-gray-900 mb-2">Why Account Approval?</h3>
+                            <p class="text-sm text-gray-700">
+                                We verify accounts to ensure genuine requests and protect both donors and those seeking help. 
+                                This helps maintain trust in our platform.
+                            </p>
                         </div>
                     </div>
                 </div>
-
-                <!-- SVG Placeholder -->
-                <div class="hidden lg:block">
-                    <img src="/assets/svg/recipient-register.svg" alt="Recipient Registration Design" class="w-full max-w-md">
-                </div>
             </div>
 
-            <!-- Right Side - Request Form -->
+            <!-- Right Side - Registration Form -->
             <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-2xl p-8 lg:p-12">
                 <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Submit Request</h2>
-                    <p class="text-gray-600">We're here to help</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
+                    <p class="text-gray-600">Quick and easy registration</p>
                 </div>
 
-                <form action="#" method="POST" enctype="multipart/form-data" class="space-y-5">
+                <!-- Validation Errors -->
+                @if ($errors->any())
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                        <ul class="list-disc list-inside text-sm text-red-600">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('recipient.register') }}" method="POST" class="space-y-5">
                     @csrf
 
                     <!-- Full Name -->
@@ -121,8 +135,26 @@
                             type="text" 
                             id="full_name" 
                             name="full_name" 
+                            value="{{ old('full_name') }}"
                             placeholder="Enter your full name"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition @error('full_name') border-red-500 @enderror"
+                        >
+                    </div>
+
+                    <!-- Email Address -->
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Email Address <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            value="{{ old('email') }}"
+                            placeholder="your.email@example.com"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition @error('email') border-red-500 @enderror"
                         >
                     </div>
 
@@ -135,8 +167,10 @@
                             type="tel" 
                             id="mobile" 
                             name="mobile" 
-                            placeholder="+94"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition"
+                            value="{{ old('mobile') }}"
+                            placeholder="+94 XX XXX XXXX"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition @error('mobile') border-red-500 @enderror"
                         >
                     </div>
 
@@ -149,70 +183,41 @@
                             type="text" 
                             id="location" 
                             name="location" 
+                            value="{{ old('location') }}"
                             placeholder="City or area"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition @error('location') border-red-500 @enderror"
                         >
                     </div>
 
-                    <!-- Category of Need -->
+                    <!-- Password -->
                     <div>
-                        <label for="category" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Category of Need <span class="text-red-500">*</span>
+                        <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Password <span class="text-red-500">*</span>
                         </label>
-                        <select 
-                            id="category" 
-                            name="category"
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="••••••••"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition @error('password') border-red-500 @enderror"
+                        >
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Confirm Password <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password_confirmation" 
+                            name="password_confirmation" 
+                            placeholder="••••••••"
+                            required
                             class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition"
                         >
-                            <option value="">Select category</option>
-                            <option value="education">Education</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="shelter">Shelter</option>
-                            <option value="food">Food Security</option>
-                            <option value="clothing">Clothing</option>
-                            <option value="emergency">Emergency Relief</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <!-- Description of Need -->
-                    <div>
-                        <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Description of Need <span class="text-red-500">*</span>
-                        </label>
-                        <textarea 
-                            id="description" 
-                            name="description" 
-                            rows="4"
-                            placeholder="Please describe your situation and what assistance you need..."
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition resize-none"
-                        ></textarea>
-                    </div>
-
-                    <!-- Supporting Documents/Proof -->
-                    <div>
-                        <label for="documents" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Supporting Documents/Proof <span class="text-red-500">*</span>
-                        </label>
-                        <p class="text-xs text-gray-500 mb-2">Upload proof documents (ID card, medical reports, bills, etc.)</p>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-white hover:bg-gray-50 transition cursor-pointer">
-                            <input 
-                                type="file" 
-                                id="documents" 
-                                name="documents[]" 
-                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                multiple
-                                class="hidden"
-                                onchange="updateFileList(this)"
-                            >
-                            <label for="documents" class="cursor-pointer">
-                                <div class="text-4xl mb-2">📄</div>
-                                <p class="font-semibold text-gray-700 mb-1">Upload Documents</p>
-                                <p class="text-xs text-gray-500">PDF, JPG, PNG, DOC (Max 5MB each)</p>
-                                <p class="text-xs text-gray-400 mt-1">You can upload multiple files</p>
-                            </label>
-                        </div>
-                        <div id="file-list" class="mt-2 space-y-1"></div>
                     </div>
 
                     <!-- Consent Checkbox -->
@@ -221,10 +226,11 @@
                             type="checkbox" 
                             id="consent" 
                             name="consent"
+                            required
                             class="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                         >
                         <label for="consent" class="text-sm text-gray-600">
-                            I confirm that all information provided is accurate and I consent to sharing this information with verified NGOs for assistance purposes.
+                            I agree to the <a href="#" class="text-indigo-600 hover:underline">Terms of Service</a> and <a href="#" class="text-indigo-600 hover:underline">Privacy Policy</a>
                         </label>
                     </div>
 
@@ -233,42 +239,18 @@
                         type="submit"
                         class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg hover:shadow-xl"
                     >
-                        Submit Request
+                        Create Account
                     </button>
 
-                    <!-- Help Text -->
-                    <p class="text-center text-xs text-gray-500 mt-4">
-                        Your request will be reviewed by our partner NGOs. You may be contacted for verification.
+                    <!-- Already have account -->
+                    <p class="text-center text-sm text-gray-600 mt-4">
+                        Already have an account? 
+                        <a href="{{ route('login') }}" class="text-indigo-600 hover:underline font-semibold">Log In</a>
                     </p>
                 </form>
             </div>
 
         </div>
     </div>
-
-    <script>
-        function updateFileList(input) {
-            const fileList = document.getElementById('file-list');
-            fileList.innerHTML = '';
-            
-            if (input.files.length > 0) {
-                Array.from(input.files).forEach((file, index) => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'flex items-center justify-between bg-indigo-50 rounded-lg px-3 py-2 text-sm';
-                    fileItem.innerHTML = `
-                        <span class="text-indigo-700 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
-                            </svg>
-                            ${file.name}
-                        </span>
-                        <span class="text-gray-500">${(file.size / 1024).toFixed(1)} KB</span>
-                    `;
-                    fileList.appendChild(fileItem);
-                });
-            }
-        }
-    </script>
-
 </body>
 </html>

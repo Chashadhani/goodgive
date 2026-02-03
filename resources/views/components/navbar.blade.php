@@ -27,25 +27,13 @@
                 </a>
                 
                 @auth
-                    @if(Auth::user()->user_type === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Admin Panel
-                        </a>
-                    @elseif(Auth::user()->user_type === 'staff')
-                        <a href="{{ route('staff.dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Staff Panel
-                        </a>
-                    @elseif(Auth::user()->user_type === 'ngo')
-                        <a href="{{ route('ngo.post-request') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Post Request
-                        </a>
-                    @elseif(Auth::user()->user_type === 'donor')
-                        <a href="{{ route('donor.donations') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Donations
-                        </a>
-                    @elseif(Auth::user()->user_type === 'user')
-                        <a href="{{ route('user.eligibility-forum') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Eligibility Forum
+                    {{-- Dashboard Link only for Donor, NGO, and Recipient (not admin/staff) --}}
+                    @if(in_array(Auth::user()->user_type, ['donor', 'ngo', 'user']))
+                        <a href="{{ route(Auth::user()->getDashboardRoute()) }}" class="text-indigo-600 hover:text-indigo-700 font-semibold transition flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                            Dashboard
                         </a>
                     @endif
                 @else
@@ -68,6 +56,15 @@
                         </button>
                         
                         <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" style="display: none;">
+                            <div class="px-4 py-2 border-b border-gray-100">
+                                <p class="text-xs text-gray-500">Signed in as</p>
+                                <p class="text-sm font-medium text-gray-900">{{ Auth::user()->user_type_label }}</p>
+                            </div>
+                            @if(in_array(Auth::user()->user_type, ['donor', 'ngo', 'user']))
+                                <a href="{{ route(Auth::user()->getDashboardRoute()) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Dashboard
+                                </a>
+                            @endif
                             <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 Profile
                             </a>
@@ -106,32 +103,16 @@
                     NGO Posts
                 </a>
                 <a href="{{ route('our-work') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                    Our-work
+                    Our Work
                 </a>
                 <a href="{{ route('about-us') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
                     About Us
                 </a>
                 
                 @auth
-                    @if(Auth::user()->user_type === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Admin Panel
-                        </a>
-                    @elseif(Auth::user()->user_type === 'staff')
-                        <a href="{{ route('staff.dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Staff Panel
-                        </a>
-                    @elseif(Auth::user()->user_type === 'ngo')
-                        <a href="{{ route('ngo.post-request') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Post Request
-                        </a>
-                    @elseif(Auth::user()->user_type === 'donor')
-                        <a href="{{ route('donor.donations') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Donations
-                        </a>
-                    @elseif(Auth::user()->user_type === 'user')
-                        <a href="{{ route('user.eligibility-forum') }}" class="text-gray-600 hover:text-gray-900 font-medium transition">
-                            Eligibility Forum
+                    @if(in_array(Auth::user()->user_type, ['donor', 'ngo', 'user']))
+                        <a href="{{ route(Auth::user()->getDashboardRoute()) }}" class="text-indigo-600 hover:text-indigo-700 font-semibold transition">
+                            Dashboard
                         </a>
                     @endif
                 @else
