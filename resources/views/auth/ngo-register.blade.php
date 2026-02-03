@@ -112,7 +112,18 @@
                     <p class="text-gray-600">Join our network of verified organizations</p>
                 </div>
 
-                <form action="#" method="POST" enctype="multipart/form-data" class="space-y-5">
+                <!-- Validation Errors -->
+                @if ($errors->any())
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                        <ul class="list-disc list-inside text-sm text-red-600">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('ngo.register') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
 
                     <!-- Organization Name -->
@@ -124,8 +135,10 @@
                             type="text" 
                             id="org_name" 
                             name="org_name" 
+                            value="{{ old('org_name') }}"
                             placeholder="Official registered name"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white transition"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white transition @error('org_name') border-red-500 @enderror"
                         >
                     </div>
 
@@ -138,8 +151,10 @@
                             type="text" 
                             id="reg_number" 
                             name="reg_number" 
+                            value="{{ old('reg_number') }}"
                             placeholder="NGO registration number"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white transition"
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white transition @error('reg_number') border-red-500 @enderror"
                         >
                     </div>
 

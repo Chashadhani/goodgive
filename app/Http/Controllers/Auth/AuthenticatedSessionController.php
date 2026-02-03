@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+        // Admin and Staff should use admin panel - redirect them there
+        if (in_array($user->user_type, [User::TYPE_ADMIN, User::TYPE_STAFF])) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Regular users (donor, ngo, recipient) go to their dashboards
+        $dashboardRoute = $user->getDashboardRoute();
+
+        return redirect()->intended(route($dashboardRoute, absolute: false));
     }
 
     /**
