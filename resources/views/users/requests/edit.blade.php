@@ -62,13 +62,11 @@
                         class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition @error('category') border-red-500 @enderror"
                     >
                         <option value="">Select category</option>
-                        <option value="education" {{ old('category', $helpRequest->category) === 'education' ? 'selected' : '' }}>Education</option>
-                        <option value="healthcare" {{ old('category', $helpRequest->category) === 'healthcare' ? 'selected' : '' }}>Healthcare</option>
-                        <option value="shelter" {{ old('category', $helpRequest->category) === 'shelter' ? 'selected' : '' }}>Shelter</option>
-                        <option value="food" {{ old('category', $helpRequest->category) === 'food' ? 'selected' : '' }}>Food Security</option>
-                        <option value="clothing" {{ old('category', $helpRequest->category) === 'clothing' ? 'selected' : '' }}>Clothing</option>
-                        <option value="emergency" {{ old('category', $helpRequest->category) === 'emergency' ? 'selected' : '' }}>Emergency Relief</option>
-                        <option value="other" {{ old('category', $helpRequest->category) === 'other' ? 'selected' : '' }}>Other</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->slug }}" {{ old('category', $helpRequest->category) === $category->slug ? 'selected' : '' }}>
+                                {{ $category->icon }} {{ $category->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 

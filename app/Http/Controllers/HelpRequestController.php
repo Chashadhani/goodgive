@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HelpCategory;
 use App\Models\HelpRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,10 @@ class HelpRequestController extends Controller
                 ->with('error', 'Your account must be approved before you can submit help requests.');
         }
         
-        return view('users.requests.create');
+        // Get active categories from database
+        $categories = HelpCategory::active()->ordered()->get();
+        
+        return view('users.requests.create', compact('categories'));
     }
 
     /**
@@ -48,22 +52,33 @@ class HelpRequestController extends Controller
                 ->with('error', 'Your account must be approved before you can submit help requests.');
         }
 
+        // Get valid category slugs from database
+        $validCategories = HelpCategory::active()->pluck('slug')->toArray();
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'category' => 'required|in:education,healthcare,shelter,food,clothing,emergency,other',
+            'category' => 'required|in:' . implode(',', $validCategories),
             'description' => 'required|string|min:50|max:2000',
             'amount_needed' => 'nullable|numeric|min:0',
             'urgency' => 'required|in:low,medium,high,critical',
             'documents' => 'nullable|array|max:5',
-            'documents.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+            'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:2048',
+        ], [
+            'documents.*.max' => 'Each document must be less than 2MB.',
+            'documents.*.mimes' => 'Documents must be PDF, JPG, PNG, DOC, or DOCX files.',
+            'documents.max' => 'You can upload a maximum of 5 documents.',
         ]);
 
         // Handle document uploads
         $documentPaths = [];
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $file) {
-                $path = $file->store('help-request-documents/' . $user->id, 'public');
-                $documentPaths[] = $path;
+                if ($file && $file->isValid()) {
+                    $path = $file->store('help-request-documents/' . $user->id, 'public');
+                    if ($path) {
+                        $documentPaths[] = $path;
+                    }
+                }
             }
         }
 
@@ -112,7 +127,10 @@ class HelpRequestController extends Controller
                 ->with('error', 'You can only edit pending requests.');
         }
 
-        return view('users.requests.edit', compact('helpRequest'));
+        // Get active categories from database
+        $categories = HelpCategory::active()->ordered()->get();
+
+        return view('users.requests.edit', compact('helpRequest', 'categories'));
     }
 
     /**
@@ -131,9 +149,12 @@ class HelpRequestController extends Controller
                 ->with('error', 'You can only edit pending requests.');
         }
 
+        // Get valid category slugs from database
+        $validCategories = HelpCategory::active()->pluck('slug')->toArray();
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'category' => 'required|in:education,healthcare,shelter,food,clothing,emergency,other',
+            'category' => 'required|in:' . implode(',', $validCategories),
             'description' => 'required|string|min:50|max:2000',
             'amount_needed' => 'nullable|numeric|min:0',
             'urgency' => 'required|in:low,medium,high,critical',

@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->string('category'); // education, healthcare, shelter, food, clothing, emergency, other
+            $table->string('category'); // education, healthcare, shelter, food, clothing, emergency, livelihood, other
             $table->text('description');
             $table->string('location')->nullable();
             $table->decimal('amount_needed', 10, 2)->nullable();
-            $table->string('urgency')->default('normal'); // low, normal, high, critical
+            $table->string('urgency')->default('medium'); // low, medium, high, critical
             $table->text('documents')->nullable(); // JSON array of file paths
             $table->enum('status', ['pending', 'approved', 'in_progress', 'fulfilled', 'rejected'])->default('pending');
             $table->text('rejection_reason')->nullable();

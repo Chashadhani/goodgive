@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RecipientRegisterController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\NgoVerificationController;
 use App\Http\Controllers\Admin\UserVerificationController;
+use App\Http\Controllers\Admin\AdminHelpRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -92,10 +93,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('/users/{user}/reject', [UserVerificationController::class, 'reject'])->name('users.reject');
         Route::patch('/users/{user}/pending', [UserVerificationController::class, 'pending'])->name('users.pending');
         
-        // Help Requests (placeholder for now)
-        Route::get('/requests', function () {
-            return view('admin.requests.index');
-        })->name('requests.index');
+        // Help Categories Management
+        Route::get('/categories', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/create', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'create'])->name('categories.create');
+        Route::post('/categories', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{category}/edit', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/categories/{category}', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::patch('/categories/{category}/toggle', [\App\Http\Controllers\Admin\HelpCategoryController::class, 'toggleStatus'])->name('categories.toggle');
+        
+        // Help Requests Management
+        Route::get('/requests', [AdminHelpRequestController::class, 'index'])->name('requests.index');
+        Route::get('/requests/{helpRequest}', [AdminHelpRequestController::class, 'show'])->name('requests.show');
+        Route::patch('/requests/{helpRequest}/approve', [AdminHelpRequestController::class, 'approve'])->name('requests.approve');
+        Route::patch('/requests/{helpRequest}/reject', [AdminHelpRequestController::class, 'reject'])->name('requests.reject');
+        Route::patch('/requests/{helpRequest}/in-progress', [AdminHelpRequestController::class, 'inProgress'])->name('requests.in-progress');
+        Route::patch('/requests/{helpRequest}/complete', [AdminHelpRequestController::class, 'complete'])->name('requests.complete');
+        Route::patch('/requests/{helpRequest}/pending', [AdminHelpRequestController::class, 'pending'])->name('requests.pending');
     });
 });
 
