@@ -81,7 +81,7 @@
                     <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{{ $ngoPost->title }}</h1>
 
                     <!-- Goal Amount -->
-                    @if($ngoPost->goal_amount)
+                    @if($ngoPost->isMoney() && $ngoPost->goal_amount)
                         <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-8">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -91,6 +91,34 @@
                                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                                     <span class="text-3xl">🎯</span>
                                 </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Items Needed (goods) -->
+                    @if($ngoPost->isGoods() && $ngoPost->items->count())
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="text-sm text-blue-600 font-medium uppercase tracking-wide">Items Needed</p>
+                                    <p class="text-lg font-bold text-blue-700 mt-1">{{ $ngoPost->total_items_count }} total items</p>
+                                </div>
+                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-3xl">📦</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach($ngoPost->items as $item)
+                                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-100">
+                                        <div>
+                                            <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                            @if($item->notes)
+                                                <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif

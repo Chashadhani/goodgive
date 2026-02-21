@@ -14,7 +14,7 @@ class AdminHelpRequestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = HelpRequest::with(['user', 'user.recipientProfile']);
+        $query = HelpRequest::with(['user', 'user.recipientProfile', 'items']);
 
         // Filter by status
         if ($request->filled('status')) {
@@ -75,7 +75,7 @@ class AdminHelpRequestController extends Controller
      */
     public function show(HelpRequest $helpRequest)
     {
-        $helpRequest->load(['user', 'user.recipientProfile']);
+        $helpRequest->load(['user', 'user.recipientProfile', 'items']);
         
         return view('admin.requests.show', compact('helpRequest'));
     }

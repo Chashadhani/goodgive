@@ -5,10 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HelpRequest extends Model
 {
     use HasFactory;
+
+    const TYPE_MONEY = 'money';
+    const TYPE_GOODS = 'goods';
 
     protected $fillable = [
         'user_id',
@@ -18,6 +22,7 @@ class HelpRequest extends Model
         'location',
         'amount_needed',
         'urgency',
+        'request_type',
         'documents',
         'status',
         'rejection_reason',
@@ -50,6 +55,36 @@ class HelpRequest extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(HelpCategory::class, 'category', 'slug');
+    }
+
+    /**
+     * Items needed (for goods type requests).
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(HelpRequestItem::class);
+    }
+
+    public function isMoney(): bool
+    {
+        return $this->request_type === self::TYPE_MONEY;
+    }
+
+    public function isGoods(): bool
+    {
+        return $this->request_type === self::TYPE_GOODS;
+    }
+
+    public function getGoodsSummaryAttribute(): string
+    {
+        return $this->items->map(function ($item) {
+            return $item->quantity . 'x ' . $item->item_name;
+        })->implode(', ');
+    }
+
+    public function getTotalItemsCountAttribute(): int
+    {
+        return $this->items->sum('quantity');
     }
 
     public function isPending(): bool

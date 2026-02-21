@@ -13,7 +13,7 @@ class AdminNgoPostController extends Controller
      */
     public function index(Request $request)
     {
-        $query = NgoPost::with(['user', 'user.ngoProfile']);
+        $query = NgoPost::with(['user', 'user.ngoProfile', 'items']);
 
         // Filter by status
         if ($request->filled('status')) {
@@ -55,7 +55,7 @@ class AdminNgoPostController extends Controller
      */
     public function show(NgoPost $ngoPost)
     {
-        $ngoPost->load(['user', 'user.ngoProfile', 'reviewer']);
+        $ngoPost->load(['user', 'user.ngoProfile', 'reviewer', 'items']);
 
         return view('admin.ngo-posts.show', compact('ngoPost'));
     }

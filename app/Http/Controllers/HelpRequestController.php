@@ -6,6 +6,7 @@ use App\Models\HelpCategory;
 use App\Models\HelpRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class HelpRequestController extends Controller
@@ -15,7 +16,7 @@ class HelpRequestController extends Controller
      */
     public function index()
     {
-        $requests = Auth::user()->helpRequests()->latest()->paginate(10);
+        $requests = Auth::user()->helpRequests()->with('items')->latest()->paginate(10);
         
         return view('users.requests.index', compact('requests'));
     }
@@ -59,10 +60,15 @@ class HelpRequestController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|in:' . implode(',', $validCategories),
             'description' => 'required|string|min:50|max:2000',
+            'request_type' => 'required|in:money,goods',
             'amount_needed' => 'nullable|numeric|min:0',
             'urgency' => 'required|in:low,medium,high,critical',
             'documents' => 'nullable|array|max:5',
             'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:2048',
+            'items' => 'required_if:request_type,goods|array|min:1',
+            'items.*.item_name' => 'required_if:request_type,goods|string|max:255',
+            'items.*.quantity' => 'required_if:request_type,goods|integer|min:1',
+            'items.*.notes' => 'nullable|string|max:500',
         ], [
             'documents.*.max' => 'Each document must be less than 2MB.',
             'documents.*.mimes' => 'Documents must be PDF, JPG, PNG, DOC, or DOCX files.',
@@ -82,17 +88,32 @@ class HelpRequestController extends Controller
             }
         }
 
-        $helpRequest = HelpRequest::create([
-            'user_id' => $user->id,
-            'title' => $validated['title'],
-            'category' => $validated['category'],
-            'description' => $validated['description'],
-            'location' => $user->recipientProfile->location,
-            'amount_needed' => $validated['amount_needed'] ?? null,
-            'urgency' => $validated['urgency'],
-            'documents' => !empty($documentPaths) ? json_encode($documentPaths) : null,
-            'status' => 'pending',
-        ]);
+        DB::transaction(function () use ($validated, $user, $documentPaths) {
+            $helpRequest = HelpRequest::create([
+                'user_id' => $user->id,
+                'title' => $validated['title'],
+                'category' => $validated['category'],
+                'description' => $validated['description'],
+                'location' => $user->recipientProfile->location,
+                'request_type' => $validated['request_type'],
+                'amount_needed' => $validated['amount_needed'] ?? null,
+                'urgency' => $validated['urgency'],
+                'documents' => !empty($documentPaths) ? json_encode($documentPaths) : null,
+                'status' => 'pending',
+            ]);
+
+            if ($validated['request_type'] === 'goods' && !empty($validated['items'])) {
+                foreach ($validated['items'] as $item) {
+                    if (!empty($item['item_name'])) {
+                        $helpRequest->items()->create([
+                            'item_name' => $item['item_name'],
+                            'quantity' => $item['quantity'],
+                            'notes' => $item['notes'] ?? null,
+                        ]);
+                    }
+                }
+            }
+        });
 
         return redirect()->route('recipient.requests.index')
             ->with('success', 'Your help request has been submitted successfully. It will be reviewed shortly.');
@@ -107,6 +128,8 @@ class HelpRequestController extends Controller
         if ($helpRequest->user_id !== Auth::id()) {
             abort(403);
         }
+
+        $helpRequest->load('items');
 
         return view('users.requests.show', compact('helpRequest'));
     }
@@ -129,6 +152,8 @@ class HelpRequestController extends Controller
 
         // Get active categories from database
         $categories = HelpCategory::active()->ordered()->get();
+
+        $helpRequest->load('items');
 
         return view('users.requests.edit', compact('helpRequest', 'categories'));
     }
@@ -156,10 +181,15 @@ class HelpRequestController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|in:' . implode(',', $validCategories),
             'description' => 'required|string|min:50|max:2000',
+            'request_type' => 'required|in:money,goods',
             'amount_needed' => 'nullable|numeric|min:0',
             'urgency' => 'required|in:low,medium,high,critical',
             'documents' => 'nullable|array|max:5',
             'documents.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+            'items' => 'required_if:request_type,goods|array|min:1',
+            'items.*.item_name' => 'required_if:request_type,goods|string|max:255',
+            'items.*.quantity' => 'required_if:request_type,goods|integer|min:1',
+            'items.*.notes' => 'nullable|string|max:500',
         ]);
 
         // Handle new document uploads
@@ -172,14 +202,32 @@ class HelpRequestController extends Controller
             }
         }
 
-        $helpRequest->update([
-            'title' => $validated['title'],
-            'category' => $validated['category'],
-            'description' => $validated['description'],
-            'amount_needed' => $validated['amount_needed'] ?? null,
-            'urgency' => $validated['urgency'],
-            'documents' => !empty($documentPaths) ? json_encode($documentPaths) : null,
-        ]);
+        DB::transaction(function () use ($validated, $helpRequest, $documentPaths) {
+            $helpRequest->update([
+                'title' => $validated['title'],
+                'category' => $validated['category'],
+                'description' => $validated['description'],
+                'request_type' => $validated['request_type'],
+                'amount_needed' => $validated['amount_needed'] ?? null,
+                'urgency' => $validated['urgency'],
+                'documents' => !empty($documentPaths) ? json_encode($documentPaths) : null,
+            ]);
+
+            // Delete old items and create new ones
+            $helpRequest->items()->delete();
+
+            if ($validated['request_type'] === 'goods' && !empty($validated['items'])) {
+                foreach ($validated['items'] as $item) {
+                    if (!empty($item['item_name'])) {
+                        $helpRequest->items()->create([
+                            'item_name' => $item['item_name'],
+                            'quantity' => $item['quantity'],
+                            'notes' => $item['notes'] ?? null,
+                        ]);
+                    }
+                }
+            }
+        });
 
         return redirect()->route('recipient.requests.show', $helpRequest)
             ->with('success', 'Your help request has been updated.');

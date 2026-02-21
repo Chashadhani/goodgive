@@ -5,10 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class NgoPost extends Model
 {
     use HasFactory;
+
+    const TYPE_MONEY = 'money';
+    const TYPE_GOODS = 'goods';
 
     protected $fillable = [
         'user_id',
@@ -17,6 +21,7 @@ class NgoPost extends Model
         'category',
         'image',
         'urgency',
+        'request_type',
         'goal_amount',
         'status',
         'admin_notes',
@@ -43,6 +48,36 @@ class NgoPost extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Items requested (for goods type posts).
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(NgoPostItem::class);
+    }
+
+    public function isMoney(): bool
+    {
+        return $this->request_type === self::TYPE_MONEY;
+    }
+
+    public function isGoods(): bool
+    {
+        return $this->request_type === self::TYPE_GOODS;
+    }
+
+    public function getGoodsSummaryAttribute(): string
+    {
+        return $this->items->map(function ($item) {
+            return $item->quantity . 'x ' . $item->item_name;
+        })->implode(', ');
+    }
+
+    public function getTotalItemsCountAttribute(): int
+    {
+        return $this->items->sum('quantity');
     }
 
     /**
