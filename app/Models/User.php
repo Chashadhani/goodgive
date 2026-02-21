@@ -99,6 +99,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get donations made by this user (donor).
+     */
+    public function donations(): HasMany
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    /**
      * Check if user is admin
      */
     public function isAdmin(): bool

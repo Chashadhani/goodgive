@@ -15,10 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Run Admin Seeder
-        $this->call(AdminSeeder::class);
-        
-        // Run Help Categories Seeder
-        $this->call(HelpCategorySeeder::class);
+        $this->call([
+            AdminSeeder::class,
+            StaffSeeder::class,
+            NgoSeeder::class,
+            DonorSeeder::class,
+            RecipientSeeder::class,
+            HelpCategorySeeder::class,
+        ]);
     }
 }
