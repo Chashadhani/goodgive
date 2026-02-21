@@ -409,6 +409,46 @@
                 @endif
             </div>
         </div>
+
+        <!-- Allocate from Stock -->
+        @if(in_array($helpRequest->status, ['approved', 'in_progress']))
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">📦 Stock Allocation</h2>
+                <a href="{{ route('admin.allocations.create', ['target_type' => 'help_request', 'target_id' => $helpRequest->id]) }}" 
+                    class="w-full inline-flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Allocate from Stock</span>
+                </a>
+            </div>
+        @endif
+
+        <!-- Existing Allocations -->
+        @if($helpRequest->allocations->count() > 0)
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Allocations ({{ $helpRequest->allocations->count() }})</h2>
+                <div class="space-y-3">
+                    @foreach($helpRequest->allocations as $allocation)
+                        <a href="{{ route('admin.allocations.show', $allocation) }}" class="block border rounded-lg p-3 hover:border-indigo-300 hover:bg-indigo-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    @if($allocation->isMoney())
+                                        <p class="font-semibold text-gray-900">💰 Rs. {{ number_format($allocation->amount) }}</p>
+                                    @else
+                                        <p class="font-semibold text-gray-900">📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}</p>
+                                    @endif
+                                    <p class="text-xs text-gray-500">From {{ $allocation->donation->user->name ?? 'Unknown' }}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $allocation->status_color }}">
+                                    {{ $allocation->status_label }}
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

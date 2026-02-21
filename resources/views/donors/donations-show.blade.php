@@ -135,6 +135,101 @@
                         </div>
                     @endif
 
+                    <!-- Stock & Allocation Tracking -->
+                    @if($donation->status === 'confirmed')
+                        <div class="border-t border-gray-100 pt-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide">📦 Stock & Allocation Tracking</h3>
+                                <a href="{{ route('donor.donations.tracking', $donation) }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                                    View Full Tracking →
+                                </a>
+                            </div>
+
+                            @if($donation->isMoney())
+                                <!-- Money remaining stock -->
+                                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 mb-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs text-green-600 uppercase tracking-wider font-semibold">Remaining in Stock</p>
+                                            <p class="text-2xl font-bold text-green-700 mt-1">Rs. {{ number_format($donation->remaining_amount) }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xs text-gray-500">Original: Rs. {{ number_format($donation->amount) }}</p>
+                                            <p class="text-xs text-gray-500">Allocated: Rs. {{ number_format($donation->amount - $donation->remaining_amount) }}</p>
+                                        </div>
+                                    </div>
+                                    @if($donation->amount > 0)
+                                        <div class="mt-3 bg-green-200 rounded-full h-2 overflow-hidden">
+                                            <div class="bg-green-600 h-full rounded-full" style="width: {{ min(100, (($donation->amount - $donation->remaining_amount) / $donation->amount) * 100) }}%"></div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if($donation->isGoods() && $donation->items->count())
+                                <!-- Goods remaining per item -->
+                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-4">
+                                    <p class="text-xs text-blue-600 uppercase tracking-wider font-semibold mb-3">Items Remaining in Stock</p>
+                                    <div class="space-y-3">
+                                        @foreach($donation->items as $item)
+                                            <div class="bg-white rounded-lg p-3 border border-blue-100">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                                    <span class="text-sm">
+                                                        <span class="font-bold text-blue-700">{{ $item->remaining_quantity }}</span>
+                                                        <span class="text-gray-500">/ {{ $item->quantity }} remaining</span>
+                                                    </span>
+                                                </div>
+                                                @if($item->quantity > 0)
+                                                    <div class="bg-blue-100 rounded-full h-1.5 overflow-hidden">
+                                                        <div class="bg-blue-600 h-full rounded-full" style="width: {{ min(100, (($item->quantity - $item->remaining_quantity) / $item->quantity) * 100) }}%"></div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Allocation list -->
+                            @if($donation->allocations->count() > 0)
+                                <div class="space-y-3">
+                                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Where Your Donation Went</p>
+                                    @foreach($donation->allocations as $allocation)
+                                        <div class="border rounded-xl p-4 {{ $allocation->isDistributed() ? 'border-green-200 bg-green-50' : ($allocation->isDelivery() ? 'border-blue-200 bg-blue-50' : 'border-yellow-200 bg-yellow-50') }}">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    @if($allocation->isMoney())
+                                                        <p class="font-semibold text-gray-900">💰 Rs. {{ number_format($allocation->amount) }}</p>
+                                                    @else
+                                                        <p class="font-semibold text-gray-900">📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}</p>
+                                                    @endif
+                                                    <p class="text-sm text-gray-600 mt-1">→ {{ Str::limit($allocation->allocatable?->title ?? 'N/A', 40) }}</p>
+                                                </div>
+                                                <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $allocation->status_color }}">
+                                                    {{ $allocation->status_label }}
+                                                </span>
+                                            </div>
+                                            @if($allocation->isDistributed() && $allocation->proof_photo)
+                                                <div class="mt-3 pt-3 border-t border-green-200">
+                                                    <p class="text-xs text-green-600 font-semibold mb-2">📸 Distribution Proof</p>
+                                                    <img src="{{ Storage::url($allocation->proof_photo) }}" alt="Proof" class="w-full max-h-40 object-cover rounded-lg">
+                                                    @if($allocation->proof_notes)
+                                                        <p class="text-xs text-gray-600 mt-1">{{ $allocation->proof_notes }}</p>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center py-4 text-gray-400">
+                                    <p class="text-sm">Your donation is in stock and hasn't been allocated yet.</p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     <!-- Review Info -->
                     @if($donation->reviewed_at)
                         <div class="border-t border-gray-100 pt-6">

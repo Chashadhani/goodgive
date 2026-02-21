@@ -55,7 +55,7 @@ class AdminNgoPostController extends Controller
      */
     public function show(NgoPost $ngoPost)
     {
-        $ngoPost->load(['user', 'user.ngoProfile', 'reviewer', 'items']);
+        $ngoPost->load(['user', 'user.ngoProfile', 'reviewer', 'items', 'allocations.donation.user']);
 
         return view('admin.ngo-posts.show', compact('ngoPost'));
     }

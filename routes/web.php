@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AdminHelpRequestController;
 use App\Http\Controllers\Admin\AdminNgoPostController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\Admin\AdminDonationController;
+use App\Http\Controllers\Admin\AdminAllocationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -128,6 +129,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('/donations/{donation}/confirm', [AdminDonationController::class, 'confirm'])->name('donations.confirm');
         Route::patch('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])->name('donations.reject');
         Route::patch('/donations/{donation}/pending', [AdminDonationController::class, 'pending'])->name('donations.pending');
+
+        // Allocations Management (allocate stock to NGO posts / help requests)
+        Route::get('/allocations', [AdminAllocationController::class, 'index'])->name('allocations.index');
+        Route::get('/allocations/create', [AdminAllocationController::class, 'create'])->name('allocations.create');
+        Route::post('/allocations', [AdminAllocationController::class, 'store'])->name('allocations.store');
+        Route::get('/allocations/{allocation}', [AdminAllocationController::class, 'show'])->name('allocations.show');
+        Route::patch('/allocations/{allocation}/advance', [AdminAllocationController::class, 'advanceStatus'])->name('allocations.advance');
+        Route::post('/allocations/{allocation}/proof', [AdminAllocationController::class, 'uploadProof'])->name('allocations.proof');
     });
 });
 
@@ -170,6 +179,7 @@ Route::middleware(['auth', 'role:donor'])->prefix('donor')->name('donor.')->grou
     Route::get('/donations/create', [DonationController::class, 'create'])->name('donations.create');
     Route::post('/donations', [DonationController::class, 'store'])->name('donations.store');
     Route::get('/donations/{donation}', [DonationController::class, 'show'])->name('donations.show');
+    Route::get('/donations/{donation}/tracking', [DonationController::class, 'tracking'])->name('donations.tracking');
     
     Route::get('/history', function () {
         return view('donors.history');

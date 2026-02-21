@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class HelpRequest extends Model
 {
@@ -63,6 +64,14 @@ class HelpRequest extends Model
     public function items(): HasMany
     {
         return $this->hasMany(HelpRequestItem::class);
+    }
+
+    /**
+     * Allocations made to this request from stock.
+     */
+    public function allocations(): MorphMany
+    {
+        return $this->morphMany(Allocation::class, 'allocatable');
     }
 
     public function isMoney(): bool

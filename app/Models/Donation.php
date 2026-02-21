@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Donation extends Model
 {
@@ -76,11 +77,44 @@ class Donation extends Model
     }
 
     /**
+     * Allocations that draw from this donation.
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(Allocation::class);
+    }
+
+    /**
      * Get a summary string of goods items.
      */
     public function getGoodsSummaryAttribute(): string
     {
         return $this->items->map(fn($item) => $item->quantity . 'x ' . $item->item_name)->implode(', ');
+    }
+
+    /**
+     * Remaining money after allocations.
+     */
+    public function getRemainingAmountAttribute(): float
+    {
+        if (!$this->isMoney()) return 0;
+        $allocated = $this->allocations()->where('type', 'money')->sum('amount');
+        return max(0, (float) $this->amount - (float) $allocated);
+    }
+
+    /**
+     * Check if this donation has available stock.
+     */
+    public function getHasAvailableStockAttribute(): bool
+    {
+        if (!$this->isConfirmed()) return false;
+
+        if ($this->isMoney()) {
+            return $this->remaining_amount > 0;
+        }
+
+        // For goods: check if any item has remaining quantity
+        return $this->items->contains(fn($item) => $item->remaining_quantity > 0);
     }
 
     /**

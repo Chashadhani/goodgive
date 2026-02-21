@@ -112,8 +112,26 @@ class DonationController extends Controller
             abort(403);
         }
 
-        $donation->load(['ngoPost', 'reviewer', 'items']);
+        $donation->load(['ngoPost', 'reviewer', 'items.allocations.allocatable', 'allocations.allocatable']);
 
         return view('donors.donations-show', compact('donation'));
+    }
+
+    /**
+     * Show allocation tracking for a donation (donor sees where their items went).
+     */
+    public function tracking(Donation $donation)
+    {
+        if ($donation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $donation->load([
+            'items.allocations.allocatable',
+            'allocations.allocatable',
+            'allocations.allocatedBy',
+        ]);
+
+        return view('donors.donations-tracking', compact('donation'));
     }
 }

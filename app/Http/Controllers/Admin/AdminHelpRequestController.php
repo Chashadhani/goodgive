@@ -75,7 +75,7 @@ class AdminHelpRequestController extends Controller
      */
     public function show(HelpRequest $helpRequest)
     {
-        $helpRequest->load(['user', 'user.recipientProfile', 'items']);
+        $helpRequest->load(['user', 'user.recipientProfile', 'items', 'allocations.donation.user']);
         
         return view('admin.requests.show', compact('helpRequest'));
     }

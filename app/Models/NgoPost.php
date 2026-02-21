@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class NgoPost extends Model
 {
@@ -56,6 +57,14 @@ class NgoPost extends Model
     public function items(): HasMany
     {
         return $this->hasMany(NgoPostItem::class);
+    }
+
+    /**
+     * Allocations made to this post from stock.
+     */
+    public function allocations(): MorphMany
+    {
+        return $this->morphMany(Allocation::class, 'allocatable');
     }
 
     public function isMoney(): bool
