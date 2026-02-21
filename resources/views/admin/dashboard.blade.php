@@ -7,6 +7,7 @@
     use App\Models\NgoProfile;
     use App\Models\RecipientProfile;
     use App\Models\DonorProfile;
+    use App\Models\NgoPost;
     
     $totalUsers = User::count();
     $totalDonors = User::where('user_type', 'donor')->count();
@@ -19,6 +20,8 @@
     $pendingRequests = RecipientProfile::where('status', 'pending')->count();
     $approvedRequests = RecipientProfile::where('status', 'approved')->count();
     $assistedRequests = RecipientProfile::where('status', 'assisted')->count();
+    
+    $pendingNgoPosts = NgoPost::where('status', 'pending')->count();
     
     $recentNgos = User::where('user_type', 'ngo')->with('ngoProfile')->latest()->take(5)->get();
     $recentUsers = User::where('user_type', 'user')->with('recipientProfile')->latest()->take(5)->get();
@@ -98,7 +101,7 @@
 </div>
 
 <!-- Quick Actions -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     <a href="{{ route('admin.ngos.index', ['status' => 'pending']) }}" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition group">
         <div class="flex items-center space-x-4">
             <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center group-hover:bg-orange-200 transition">
@@ -137,6 +140,20 @@
             <div>
                 <h3 class="font-bold text-gray-900">Donation Requests</h3>
                 <p class="text-sm text-gray-500">View all requests</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ route('admin.ngo-posts.index', ['status' => 'pending']) }}" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition group">
+        <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center group-hover:bg-indigo-200 transition">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-bold text-gray-900">NGO Posts</h3>
+                <p class="text-sm text-gray-500">{{ $pendingNgoPosts }} pending review</p>
             </div>
         </div>
     </a>
