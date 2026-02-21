@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HelpRequestController;
+use App\Http\Controllers\NgoPostController;
 use App\Http\Controllers\Auth\DonorRegisterController;
 use App\Http\Controllers\Auth\NgoRegisterController;
 use App\Http\Controllers\Auth\RecipientRegisterController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\NgoVerificationController;
 use App\Http\Controllers\Admin\UserVerificationController;
 use App\Http\Controllers\Admin\AdminHelpRequestController;
+use App\Http\Controllers\Admin\AdminNgoPostController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,9 +21,9 @@ Route::get('/how-it-works', function () {
     return view('how-it-works');
 })->name('how-it-works');
 
-Route::get('/ngos-posts', function () {
-    return view('ngos-posts');
-})->name('ngos-posts');
+Route::get('/ngos-posts', [NgoPostController::class, 'publicIndex'])->name('ngos-posts');
+
+Route::get('/ngos-posts/{ngoPost}', [NgoPostController::class, 'publicShow'])->name('ngo-post.show');
 
 Route::get('/our-work', function () {
     return view('our-work');
@@ -110,6 +112,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('/requests/{helpRequest}/in-progress', [AdminHelpRequestController::class, 'inProgress'])->name('requests.in-progress');
         Route::patch('/requests/{helpRequest}/complete', [AdminHelpRequestController::class, 'complete'])->name('requests.complete');
         Route::patch('/requests/{helpRequest}/pending', [AdminHelpRequestController::class, 'pending'])->name('requests.pending');
+
+        // NGO Posts Management
+        Route::get('/ngo-posts', [AdminNgoPostController::class, 'index'])->name('ngo-posts.index');
+        Route::get('/ngo-posts/{ngoPost}', [AdminNgoPostController::class, 'show'])->name('ngo-posts.show');
+        Route::patch('/ngo-posts/{ngoPost}/approve', [AdminNgoPostController::class, 'approve'])->name('ngo-posts.approve');
+        Route::patch('/ngo-posts/{ngoPost}/reject', [AdminNgoPostController::class, 'reject'])->name('ngo-posts.reject');
+        Route::patch('/ngo-posts/{ngoPost}/pending', [AdminNgoPostController::class, 'pending'])->name('ngo-posts.pending');
     });
 });
 
@@ -128,6 +137,15 @@ Route::middleware(['auth', 'role:ngo'])->prefix('ngo')->name('ngo.')->group(func
     Route::get('/requests', function () {
         return view('ngo.requests');
     })->name('requests');
+
+    // NGO Posts CRUD
+    Route::get('/posts', [NgoPostController::class, 'index'])->name('posts.index');
+    Route::get('/posts/create', [NgoPostController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [NgoPostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{ngoPost}', [NgoPostController::class, 'show'])->name('posts.show');
+    Route::get('/posts/{ngoPost}/edit', [NgoPostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{ngoPost}', [NgoPostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{ngoPost}', [NgoPostController::class, 'destroy'])->name('posts.destroy');
 });
 
 // =========================================

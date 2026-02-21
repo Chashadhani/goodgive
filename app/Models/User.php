@@ -91,6 +91,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get NGO posts created by this user.
+     */
+    public function ngoPosts(): HasMany
+    {
+        return $this->hasMany(NgoPost::class);
+    }
+
+    /**
      * Check if user is admin
      */
     public function isAdmin(): bool
