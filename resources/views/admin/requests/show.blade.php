@@ -70,8 +70,10 @@
                 <div>
                     <p class="text-sm text-gray-500">Amount Needed</p>
                     <p class="font-medium text-gray-900">
-                        @if($helpRequest->amount_needed)
+                        @if($helpRequest->isMoney() && $helpRequest->amount_needed)
                             LKR {{ number_format($helpRequest->amount_needed, 2) }}
+                        @elseif($helpRequest->isGoods())
+                            📦 Goods Request
                         @else
                             Not specified
                         @endif
@@ -93,6 +95,26 @@
                     <p class="text-gray-800 whitespace-pre-line">{{ $helpRequest->description }}</p>
                 </div>
             </div>
+
+            @if($helpRequest->isGoods() && $helpRequest->items->count())
+                <div class="mt-6">
+                    <p class="text-sm text-gray-500 mb-3">📦 Items Needed</p>
+                    <div class="space-y-2">
+                        @foreach($helpRequest->items as $item)
+                            <div class="flex items-center justify-between bg-blue-50 rounded-lg px-4 py-3 border border-blue-100">
+                                <div>
+                                    <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                    @if($item->notes)
+                                        <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
+                                    @endif
+                                </div>
+                                <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Total items: {{ $helpRequest->total_items_count }}</p>
+                </div>
+            @endif
         </div>
 
         <!-- Documents -->
@@ -387,6 +409,46 @@
                 @endif
             </div>
         </div>
+
+        <!-- Allocate from Stock -->
+        @if(in_array($helpRequest->status, ['approved', 'in_progress']))
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">📦 Stock Allocation</h2>
+                <a href="{{ route('admin.allocations.create', ['target_type' => 'help_request', 'target_id' => $helpRequest->id]) }}" 
+                    class="w-full inline-flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Allocate from Stock</span>
+                </a>
+            </div>
+        @endif
+
+        <!-- Existing Allocations -->
+        @if($helpRequest->allocations->count() > 0)
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Allocations ({{ $helpRequest->allocations->count() }})</h2>
+                <div class="space-y-3">
+                    @foreach($helpRequest->allocations as $allocation)
+                        <a href="{{ route('admin.allocations.show', $allocation) }}" class="block border rounded-lg p-3 hover:border-indigo-300 hover:bg-indigo-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    @if($allocation->isMoney())
+                                        <p class="font-semibold text-gray-900">💰 Rs. {{ number_format($allocation->amount) }}</p>
+                                    @else
+                                        <p class="font-semibold text-gray-900">📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}</p>
+                                    @endif
+                                    <p class="text-xs text-gray-500">From {{ $allocation->donation->user->name ?? 'Unknown' }}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $allocation->status_color }}">
+                                    {{ $allocation->status_label }}
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\NgoVerificationController;
 use App\Http\Controllers\Admin\UserVerificationController;
 use App\Http\Controllers\Admin\AdminHelpRequestController;
 use App\Http\Controllers\Admin\AdminNgoPostController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\Admin\AdminDonationController;
+use App\Http\Controllers\Admin\AdminAllocationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -119,6 +122,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('/ngo-posts/{ngoPost}/approve', [AdminNgoPostController::class, 'approve'])->name('ngo-posts.approve');
         Route::patch('/ngo-posts/{ngoPost}/reject', [AdminNgoPostController::class, 'reject'])->name('ngo-posts.reject');
         Route::patch('/ngo-posts/{ngoPost}/pending', [AdminNgoPostController::class, 'pending'])->name('ngo-posts.pending');
+
+        // Donations Management
+        Route::get('/donations', [AdminDonationController::class, 'index'])->name('donations.index');
+        Route::get('/donations/{donation}', [AdminDonationController::class, 'show'])->name('donations.show');
+        Route::patch('/donations/{donation}/confirm', [AdminDonationController::class, 'confirm'])->name('donations.confirm');
+        Route::patch('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])->name('donations.reject');
+        Route::patch('/donations/{donation}/pending', [AdminDonationController::class, 'pending'])->name('donations.pending');
+
+        // Allocations Management (allocate stock to NGO posts / help requests)
+        Route::get('/allocations', [AdminAllocationController::class, 'index'])->name('allocations.index');
+        Route::get('/allocations/create', [AdminAllocationController::class, 'create'])->name('allocations.create');
+        Route::post('/allocations', [AdminAllocationController::class, 'store'])->name('allocations.store');
+        Route::get('/allocations/{allocation}', [AdminAllocationController::class, 'show'])->name('allocations.show');
+        Route::patch('/allocations/{allocation}/advance', [AdminAllocationController::class, 'advanceStatus'])->name('allocations.advance');
+        Route::post('/allocations/{allocation}/proof', [AdminAllocationController::class, 'uploadProof'])->name('allocations.proof');
     });
 });
 
@@ -156,9 +174,12 @@ Route::middleware(['auth', 'role:donor'])->prefix('donor')->name('donor.')->grou
         return view('donors.dashboard');
     })->name('dashboard');
     
-    Route::get('/donations', function () {
-        return view('donors.donations');
-    })->name('donations');
+    // Donations CRUD
+    Route::get('/donations', [DonationController::class, 'index'])->name('donations.index');
+    Route::get('/donations/create', [DonationController::class, 'create'])->name('donations.create');
+    Route::post('/donations', [DonationController::class, 'store'])->name('donations.store');
+    Route::get('/donations/{donation}', [DonationController::class, 'show'])->name('donations.show');
+    Route::get('/donations/{donation}/tracking', [DonationController::class, 'tracking'])->name('donations.tracking');
     
     Route::get('/history', function () {
         return view('donors.history');

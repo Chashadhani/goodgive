@@ -75,10 +75,30 @@
                 </div>
             </div>
 
-            @if($helpRequest->amount_needed)
+            @if($helpRequest->isMoney() && $helpRequest->amount_needed)
                 <div>
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Amount Needed</h3>
                     <p class="text-2xl font-bold text-indigo-600">LKR {{ number_format($helpRequest->amount_needed, 2) }}</p>
+                </div>
+            @endif
+
+            @if($helpRequest->isGoods() && $helpRequest->items->count())
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">📦 Items Needed</h3>
+                    <div class="space-y-2">
+                        @foreach($helpRequest->items as $item)
+                            <div class="flex items-center justify-between bg-blue-50 rounded-lg px-4 py-3 border border-blue-100">
+                                <div>
+                                    <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                    @if($item->notes)
+                                        <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
+                                    @endif
+                                </div>
+                                <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Total items: {{ $helpRequest->total_items_count }}</p>
                 </div>
             @endif
 

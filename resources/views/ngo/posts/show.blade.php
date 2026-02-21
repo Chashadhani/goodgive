@@ -50,10 +50,36 @@
 
                     <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $ngoPost->title }}</h1>
 
-                    @if($ngoPost->goal_amount)
+                    <!-- Request Type Badge -->
+                    <div class="mb-4">
+                        <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $ngoPost->isMoney() ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
+                            {{ $ngoPost->isMoney() ? '💰 Money Request' : '📦 Goods Request' }}
+                        </span>
+                    </div>
+
+                    @if($ngoPost->isMoney() && $ngoPost->goal_amount)
                         <div class="bg-gray-50 rounded-lg p-4 mb-6">
                             <p class="text-sm text-gray-500">Donation Goal</p>
                             <p class="text-2xl font-bold text-green-600">Rs. {{ number_format($ngoPost->goal_amount) }}</p>
+                        </div>
+                    @endif
+
+                    @if($ngoPost->isGoods() && $ngoPost->items->count())
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                            <p class="text-sm font-semibold text-blue-800 mb-3">Items Needed</p>
+                            <div class="space-y-2">
+                                @foreach($ngoPost->items as $item)
+                                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-blue-100">
+                                        <div>
+                                            <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                            @if($item->notes)
+                                                <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
 

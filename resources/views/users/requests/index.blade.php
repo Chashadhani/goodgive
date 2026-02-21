@@ -77,7 +77,15 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-gray-900">{{ Str::limit($request->title, 40) }}</div>
-                                <div class="text-sm text-gray-500">{{ Str::limit($request->description, 60) }}</div>
+                                <div class="text-sm text-gray-500">
+                                    @if($request->isGoods())
+                                        <span class="text-blue-600">📦 {{ $request->items->count() }} items needed</span>
+                                    @elseif($request->amount_needed)
+                                        <span>💰 LKR {{ number_format($request->amount_needed) }}</span>
+                                    @else
+                                        {{ Str::limit($request->description, 60) }}
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">

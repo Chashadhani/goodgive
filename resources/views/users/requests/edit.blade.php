@@ -29,9 +29,39 @@
             </div>
         @endif
 
-        <form action="{{ route('recipient.requests.update', $helpRequest) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form action="{{ route('recipient.requests.update', $helpRequest) }}" method="POST" enctype="multipart/form-data" class="space-y-6"
+              x-data="{
+                  requestType: '{{ old('request_type', $helpRequest->request_type ?? 'money') }}',
+                  items: {{ old('request_type') ? '[]' : $helpRequest->items->map(fn($i) => ['item_name' => $i->item_name, 'quantity' => $i->quantity, 'notes' => $i->notes])->toJson() }},
+                  addItem() { this.items.push({ item_name: '', quantity: 1, notes: '' }); },
+                  removeItem(index) { this.items.splice(index, 1); if (this.items.length === 0) this.addItem(); }
+              }"
+              x-init="if (requestType === 'goods' && items.length === 0) addItem()">
             @csrf
             @method('PUT')
+
+            <!-- Request Type -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                    Request Type <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="request_type" value="money" class="hidden peer" x-model="requestType">
+                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center hover:border-green-300 transition peer-checked:border-green-500 peer-checked:bg-green-50">
+                            <span class="text-3xl block mb-2">💰</span>
+                            <span class="font-semibold text-gray-800">Money</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="request_type" value="goods" class="hidden peer" x-model="requestType">
+                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center hover:border-blue-300 transition peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                            <span class="text-3xl block mb-2">📦</span>
+                            <span class="font-semibold text-gray-800">Goods</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
 
             <!-- Title -->
             <div>
@@ -90,8 +120,8 @@
                 </div>
             </div>
 
-            <!-- Amount Needed -->
-            <div>
+            <!-- Amount Needed (Money) -->
+            <div x-show="requestType === 'money'" x-transition>
                 <label for="amount_needed" class="block text-sm font-semibold text-gray-700 mb-2">
                     Amount Needed (Optional)
                 </label>
@@ -108,6 +138,40 @@
                         class="w-full pl-14 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition @error('amount_needed') border-red-500 @enderror"
                     >
                 </div>
+            </div>
+
+            <!-- Items Needed (Goods) -->
+            <div x-show="requestType === 'goods'" x-transition>
+                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                    Items Needed <span class="text-red-500">*</span>
+                </label>
+                <div class="space-y-3">
+                    <template x-for="(item, index) in items" :key="index">
+                        <div class="flex gap-3 items-start bg-gray-50 rounded-xl p-4 border border-gray-200">
+                            <div class="flex-1 space-y-2">
+                                <input type="text" :name="'items['+index+'][item_name]'" x-model="item.item_name" placeholder="Item name" 
+                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                <div class="flex gap-2">
+                                    <input type="number" :name="'items['+index+'][quantity]'" x-model="item.quantity" min="1" placeholder="Qty"
+                                        class="w-24 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                    <input type="text" :name="'items['+index+'][notes]'" x-model="item.notes" placeholder="Notes (optional)"
+                                        class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                </div>
+                            </div>
+                            <button type="button" @click="removeItem(index)" class="mt-1 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+                <button type="button" @click="addItem()" class="mt-3 inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-medium">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Add Item
+                </button>
             </div>
 
             <!-- Description -->

@@ -81,7 +81,7 @@
                     <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{{ $ngoPost->title }}</h1>
 
                     <!-- Goal Amount -->
-                    @if($ngoPost->goal_amount)
+                    @if($ngoPost->isMoney() && $ngoPost->goal_amount)
                         <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-8">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -95,6 +95,34 @@
                         </div>
                     @endif
 
+                    <!-- Items Needed (goods) -->
+                    @if($ngoPost->isGoods() && $ngoPost->items->count())
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="text-sm text-blue-600 font-medium uppercase tracking-wide">Items Needed</p>
+                                    <p class="text-lg font-bold text-blue-700 mt-1">{{ $ngoPost->total_items_count }} total items</p>
+                                </div>
+                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-3xl">📦</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach($ngoPost->items as $item)
+                                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-100">
+                                        <div>
+                                            <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                            @if($item->notes)
+                                                <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Description -->
                     <div class="prose prose-lg max-w-none text-gray-700 mb-8 leading-relaxed">
                         {!! nl2br(e($ngoPost->description)) !!}
@@ -103,11 +131,25 @@
                     <!-- Action Buttons -->
                     <div class="border-t border-gray-200 pt-8 mt-8">
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <!-- Donate Button (placeholder) -->
-                            <button class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-                                <span class="text-2xl">💝</span>
-                                <span>Donate Now</span>
-                            </button>
+                            <!-- Donate Button -->
+                            @auth
+                                @if(auth()->user()->isDonor())
+                                    <a href="{{ route('donor.donations.create', ['ngo_post_id' => $ngoPost->id]) }}" class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                                        <span class="text-2xl">💝</span>
+                                        <span>Donate Now</span>
+                                    </a>
+                                @else
+                                    <button class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 opacity-75 cursor-not-allowed" title="Only donors can make donations">
+                                        <span class="text-2xl">💝</span>
+                                        <span>Donate Now</span>
+                                    </button>
+                                @endif
+                            @else
+                                <a href="{{ route('login') }}" class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                                    <span class="text-2xl">💝</span>
+                                    <span>Login to Donate</span>
+                                </a>
+                            @endauth
                             
                             <!-- Share Button -->
                             <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!')" class="px-6 py-4 border-2 border-gray-300 hover:bg-gray-50 rounded-xl font-semibold transition flex items-center justify-center space-x-2">

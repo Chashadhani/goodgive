@@ -157,8 +157,10 @@
                                     @elseif($post->urgency === 'critical')
                                         <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Critical</span>
                                     @endif
-                                    @if($post->goal_amount)
+                                    @if($post->isMoney() && $post->goal_amount)
                                         <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Rs. {{ number_format($post->goal_amount) }}</span>
+                                    @elseif($post->isGoods())
+                                        <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">📦 {{ $post->total_items_count }} items needed</span>
                                     @endif
                                 </div>
 

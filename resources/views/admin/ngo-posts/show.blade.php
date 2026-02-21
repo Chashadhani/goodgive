@@ -50,10 +50,30 @@
 
                 <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ $ngoPost->title }}</h1>
 
-                @if($ngoPost->goal_amount)
+                @if($ngoPost->isMoney() && $ngoPost->goal_amount)
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                        <p class="text-sm text-green-600 font-medium">Donation Goal</p>
+                        <p class="text-sm text-green-600 font-medium">💰 Donation Goal (Money)</p>
                         <p class="text-2xl font-bold text-green-700">Rs. {{ number_format($ngoPost->goal_amount) }}</p>
+                    </div>
+                @endif
+
+                @if($ngoPost->isGoods() && $ngoPost->items->count())
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-blue-600 font-medium mb-3">📦 Items Needed (Goods)</p>
+                        <div class="space-y-2">
+                            @foreach($ngoPost->items as $item)
+                                <div class="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-blue-100">
+                                    <div>
+                                        <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
+                                        @if($item->notes)
+                                            <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
+                                        @endif
+                                    </div>
+                                    <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                        <p class="text-sm text-blue-600 mt-3 font-semibold">Total items: {{ $ngoPost->total_items_count }}</p>
                     </div>
                 @endif
 
@@ -179,6 +199,46 @@
                 </form>
             @endif
         </div>
+
+        <!-- Allocate from Stock -->
+        @if($ngoPost->status === 'approved')
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">📦 Stock Allocation</h3>
+                <a href="{{ route('admin.allocations.create', ['target_type' => 'ngo_post', 'target_id' => $ngoPost->id]) }}" 
+                    class="w-full inline-flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Allocate from Stock</span>
+                </a>
+            </div>
+        @endif
+
+        <!-- Existing Allocations -->
+        @if($ngoPost->allocations->count() > 0)
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Allocations ({{ $ngoPost->allocations->count() }})</h3>
+                <div class="space-y-3">
+                    @foreach($ngoPost->allocations as $allocation)
+                        <a href="{{ route('admin.allocations.show', $allocation) }}" class="block border rounded-lg p-3 hover:border-indigo-300 hover:bg-indigo-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    @if($allocation->isMoney())
+                                        <p class="font-semibold text-gray-900">💰 Rs. {{ number_format($allocation->amount) }}</p>
+                                    @else
+                                        <p class="font-semibold text-gray-900">📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}</p>
+                                    @endif
+                                    <p class="text-xs text-gray-500">From {{ $allocation->donation->user->name ?? 'Unknown' }}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $allocation->status_color }}">
+                                    {{ $allocation->status_label }}
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -122,9 +122,12 @@
                             <td class="px-6 py-4">
                                 <div class="max-w-xs">
                                     <p class="text-sm font-medium text-gray-900 truncate">{{ $request->title }}</p>
-                                    <p class="text-xs text-gray-500 truncate">{{ Str::limit($request->description, 50) }}</p>
-                                    @if($request->amount_needed)
-                                        <p class="text-xs font-medium text-indigo-600 mt-1">LKR {{ number_format($request->amount_needed, 2) }}</p>
+                                    @if($request->isGoods())
+                                        <p class="text-xs text-blue-600 mt-1">📦 {{ $request->items->count() }} items needed</p>
+                                    @elseif($request->amount_needed)
+                                        <p class="text-xs font-medium text-indigo-600 mt-1">💰 LKR {{ number_format($request->amount_needed, 2) }}</p>
+                                    @else
+                                        <p class="text-xs text-gray-500 truncate">{{ Str::limit($request->description, 50) }}</p>
                                     @endif
                                 </div>
                             </td>

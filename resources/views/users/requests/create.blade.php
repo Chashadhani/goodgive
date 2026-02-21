@@ -202,6 +202,31 @@
                         </div>
 
                         <div class="max-w-2xl mx-auto space-y-6">
+                            <!-- Request Type -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                    What type of help do you need? <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="request_type" value="money" class="hidden peer" {{ old('request_type', 'money') === 'money' ? 'checked' : '' }}>
+                                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center hover:border-green-300 transition peer-checked:border-green-500 peer-checked:bg-green-50">
+                                            <span class="text-3xl block mb-2">💰</span>
+                                            <span class="font-semibold text-gray-800">Money</span>
+                                            <p class="text-xs text-gray-500 mt-1">Financial assistance</p>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="request_type" value="goods" class="hidden peer" {{ old('request_type') === 'goods' ? 'checked' : '' }}>
+                                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center hover:border-blue-300 transition peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                                            <span class="text-3xl block mb-2">📦</span>
+                                            <span class="font-semibold text-gray-800">Goods</span>
+                                            <p class="text-xs text-gray-500 mt-1">Physical items needed</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
                             <!-- Title -->
                             <div>
                                 <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -236,8 +261,8 @@
                                 </div>
                             </div>
 
-                            <!-- Amount Needed -->
-                            <div>
+                            <!-- Amount Needed (Money type) -->
+                            <div id="amountSection">
                                 <label for="amount_needed" class="block text-sm font-semibold text-gray-700 mb-2">
                                     Estimated Amount Needed (Optional)
                                 </label>
@@ -255,6 +280,22 @@
                                     >
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">Leave empty if you're not sure or if it's not financial assistance</p>
+                            </div>
+
+                            <!-- Items Needed (Goods type) -->
+                            <div id="itemsSection" style="display: none;">
+                                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                    Items Needed <span class="text-red-500">*</span>
+                                </label>
+                                <div id="itemsContainer" class="space-y-3">
+                                    <!-- Items will be added dynamically -->
+                                </div>
+                                <button type="button" onclick="addItem()" class="mt-3 inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-medium">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    Add Item
+                                </button>
                             </div>
 
                             <!-- Location Display -->
@@ -509,6 +550,17 @@
 
                                 <hr class="border-gray-200">
 
+                                <!-- Request Type -->
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Request Type</p>
+                                        <p class="font-semibold text-gray-900" id="review-request-type">-</p>
+                                    </div>
+                                    <button type="button" onclick="goToStep(2)" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">Edit</button>
+                                </div>
+
+                                <hr class="border-gray-200">
+
                                 <!-- Title -->
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1 mr-4">
@@ -531,11 +583,20 @@
 
                                 <hr class="border-gray-200">
 
-                                <!-- Amount -->
-                                <div class="flex items-start justify-between">
+                                <!-- Amount (money) -->
+                                <div class="flex items-start justify-between" id="review-amount-row">
                                     <div>
                                         <p class="text-sm text-gray-500">Amount Needed</p>
                                         <p class="font-semibold text-gray-900" id="review-amount">Not specified</p>
+                                    </div>
+                                    <button type="button" onclick="goToStep(2)" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">Edit</button>
+                                </div>
+
+                                <!-- Items (goods) -->
+                                <div class="flex items-start justify-between" id="review-items-row" style="display: none;">
+                                    <div class="flex-1 mr-4">
+                                        <p class="text-sm text-gray-500">Items Needed</p>
+                                        <div id="review-items" class="mt-1 space-y-1"></div>
                                     </div>
                                     <button type="button" onclick="goToStep(2)" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">Edit</button>
                                 </div>
@@ -610,6 +671,7 @@
     <script>
         let currentStep = 1;
         const totalSteps = 5;
+        let itemCounter = 0;
 
         // Category labels from database (passed via Blade)
         const categoryLabels = {
@@ -625,6 +687,60 @@
             'high': { label: '🟠 High Priority', color: 'text-orange-600' },
             'critical': { label: '🔴 Critical - Emergency', color: 'text-red-600' }
         };
+
+        // Request type toggle
+        function toggleRequestType() {
+            const requestType = document.querySelector('input[name="request_type"]:checked');
+            const amountSection = document.getElementById('amountSection');
+            const itemsSection = document.getElementById('itemsSection');
+            
+            if (requestType && requestType.value === 'goods') {
+                amountSection.style.display = 'none';
+                itemsSection.style.display = 'block';
+                if (document.getElementById('itemsContainer').children.length === 0) {
+                    addItem();
+                }
+            } else {
+                amountSection.style.display = 'block';
+                itemsSection.style.display = 'none';
+            }
+        }
+
+        function addItem() {
+            itemCounter++;
+            const container = document.getElementById('itemsContainer');
+            const row = document.createElement('div');
+            row.className = 'flex gap-3 items-start bg-gray-50 rounded-xl p-4 border border-gray-200';
+            row.id = `item-row-${itemCounter}`;
+            row.innerHTML = `
+                <div class="flex-1 space-y-2">
+                    <input type="text" name="items[${itemCounter}][item_name]" placeholder="Item name (e.g., Rice, Textbooks)" 
+                        class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" required>
+                    <div class="flex gap-2">
+                        <input type="number" name="items[${itemCounter}][quantity]" placeholder="Qty" min="1" value="1"
+                            class="w-24 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" required>
+                        <input type="text" name="items[${itemCounter}][notes]" placeholder="Notes (optional, e.g., size, brand)" 
+                            class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    </div>
+                </div>
+                <button type="button" onclick="removeItem(${itemCounter})" class="mt-1 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeItem(id) {
+            const row = document.getElementById(`item-row-${id}`);
+            if (row) {
+                row.remove();
+                if (document.getElementById('itemsContainer').children.length === 0) {
+                    addItem();
+                }
+            }
+        }
 
         function updateProgressBar() {
             for (let i = 1; i <= totalSteps; i++) {
@@ -729,6 +845,13 @@
             const category = document.querySelector('input[name="category"]:checked');
             document.getElementById('review-category').textContent = category ? categoryLabels[category.value] : '-';
 
+            // Request Type
+            const requestType = document.querySelector('input[name="request_type"]:checked');
+            const rtEl = document.getElementById('review-request-type');
+            if (requestType) {
+                rtEl.textContent = requestType.value === 'money' ? '💰 Money' : '📦 Goods';
+            }
+
             // Title
             const title = document.getElementById('title').value.trim();
             document.getElementById('review-title').textContent = title || '-';
@@ -737,9 +860,35 @@
             const description = document.getElementById('description').value.trim();
             document.getElementById('review-description').textContent = description || '-';
 
-            // Amount
-            const amount = document.getElementById('amount_needed').value;
-            document.getElementById('review-amount').textContent = amount ? `LKR ${parseFloat(amount).toLocaleString()}` : 'Not specified';
+            // Amount / Items based on type
+            const reviewAmountRow = document.getElementById('review-amount-row');
+            const reviewItemsRow = document.getElementById('review-items-row');
+            
+            if (requestType && requestType.value === 'goods') {
+                reviewAmountRow.style.display = 'none';
+                reviewItemsRow.style.display = 'flex';
+                
+                const itemsContainer = document.getElementById('itemsContainer');
+                const reviewItems = document.getElementById('review-items');
+                reviewItems.innerHTML = '';
+                
+                itemsContainer.querySelectorAll('[id^="item-row-"]').forEach(row => {
+                    const name = row.querySelector('input[name*="item_name"]').value;
+                    const qty = row.querySelector('input[name*="quantity"]').value;
+                    const notes = row.querySelector('input[name*="notes"]').value;
+                    if (name) {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2';
+                        div.innerHTML = `<span class="text-sm font-medium text-gray-900">${name}${notes ? ' <span class="text-gray-500">(' + notes + ')</span>' : ''}</span><span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">× ${qty}</span>`;
+                        reviewItems.appendChild(div);
+                    }
+                });
+            } else {
+                reviewAmountRow.style.display = 'flex';
+                reviewItemsRow.style.display = 'none';
+                const amount = document.getElementById('amount_needed').value;
+                document.getElementById('review-amount').textContent = amount ? `LKR ${parseFloat(amount).toLocaleString()}` : 'Not specified';
+            }
 
             // Urgency
             const urgency = document.querySelector('input[name="urgency"]:checked');
@@ -887,6 +1036,12 @@
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Request type toggle listeners
+            document.querySelectorAll('input[name="request_type"]').forEach(input => {
+                input.addEventListener('change', toggleRequestType);
+            });
+            toggleRequestType();
+
             // Trigger change events for pre-selected values (from old input)
             document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
                 input.dispatchEvent(new Event('change'));

@@ -130,8 +130,10 @@
                                 @endif
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ Str::limit($post->title, 35) }}</p>
-                                    @if($post->goal_amount)
-                                        <p class="text-xs text-gray-500">Goal: Rs. {{ number_format($post->goal_amount) }}</p>
+                                    @if($post->isMoney() && $post->goal_amount)
+                                        <p class="text-xs text-gray-500">💰 Goal: Rs. {{ number_format($post->goal_amount) }}</p>
+                                    @elseif($post->isGoods())
+                                        <p class="text-xs text-gray-500">📦 {{ $post->items->count() }} item types needed</p>
                                     @endif
                                 </div>
                             </div>
