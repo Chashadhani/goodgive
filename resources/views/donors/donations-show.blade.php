@@ -70,6 +70,18 @@
                                 <p class="text-xs text-gray-500 uppercase tracking-wide">Amount</p>
                                 <p class="text-lg font-semibold text-gray-900 mt-1">Rs. {{ number_format($donation->amount, 2) }}</p>
                             </div>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Payment Method</p>
+                                <p class="text-lg font-semibold text-gray-900 mt-1">
+                                    @if($donation->payment_method === 'pickup')
+                                        🚗 Pickup
+                                    @elseif($donation->payment_method === 'online')
+                                        💳 Online Pay
+                                    @else
+                                        —
+                                    @endif
+                                </p>
+                            </div>
                         @else
                             <div class="bg-gray-50 rounded-xl p-4">
                                 <p class="text-xs text-gray-500 uppercase tracking-wide">Total Items</p>

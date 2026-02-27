@@ -19,11 +19,15 @@ class Donation extends Model
     const TYPE_MONEY = 'money';
     const TYPE_GOODS = 'goods';
 
+    const PAYMENT_PICKUP = 'pickup';
+    const PAYMENT_ONLINE = 'online';
+
     protected $fillable = [
         'user_id',
         'ngo_post_id',
         'donation_type',
         'amount',
+        'payment_method',
         'status',
         'donor_notes',
         'admin_notes',

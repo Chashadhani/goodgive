@@ -40,6 +40,7 @@ class DonationController extends Controller
 
         if ($request->donation_type === 'money') {
             $rules['amount'] = 'required|numeric|min:1';
+            $rules['payment_method'] = 'required|in:pickup,online';
         } else {
             $rules['items'] = 'required|array|min:1';
             $rules['items.*.item_name'] = 'required|string|max:255';
@@ -55,6 +56,7 @@ class DonationController extends Controller
                 'ngo_post_id' => $validated['ngo_post_id'] ?? null,
                 'donation_type' => $validated['donation_type'],
                 'amount' => $validated['donation_type'] === 'money' ? $validated['amount'] : null,
+                'payment_method' => $validated['donation_type'] === 'money' ? $validated['payment_method'] : null,
                 'donor_notes' => $validated['donor_notes'] ?? null,
                 'status' => 'pending',
             ]);

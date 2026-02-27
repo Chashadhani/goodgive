@@ -123,6 +123,36 @@
                                 </button>
                             @endforeach
                         </div>
+
+                        <!-- Payment Method -->
+                        <div class="mt-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Payment Method *</label>
+                            <div class="grid grid-cols-2 gap-4" x-data="{ paymentMethod: '{{ old('payment_method', '') }}' }">
+                                <label class="relative cursor-pointer" @click="paymentMethod = 'pickup'">
+                                    <input type="radio" name="payment_method" value="pickup" class="sr-only peer"
+                                        :checked="paymentMethod === 'pickup'">
+                                    <div class="border-2 rounded-xl p-4 text-center transition"
+                                        :class="paymentMethod === 'pickup' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'">
+                                        <span class="text-3xl block mb-2">🚗</span>
+                                        <span class="font-semibold text-gray-900">Pickup</span>
+                                        <p class="text-xs text-gray-500 mt-1">Our team will collect the money from you</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer" @click="paymentMethod = 'online'">
+                                    <input type="radio" name="payment_method" value="online" class="sr-only peer"
+                                        :checked="paymentMethod === 'online'">
+                                    <div class="border-2 rounded-xl p-4 text-center transition"
+                                        :class="paymentMethod === 'online' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-gray-300'">
+                                        <span class="text-3xl block mb-2">💳</span>
+                                        <span class="font-semibold text-gray-900">Online Pay</span>
+                                        <p class="text-xs text-gray-500 mt-1">Transfer the money online / bank transfer</p>
+                                    </div>
+                                </label>
+                            </div>
+                            @error('payment_method')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Goods Items Fields -->
