@@ -197,7 +197,8 @@ class AdminAllocationController extends Controller
     }
 
     /**
-     * Advance allocation status: processing → delivery → distributed.
+     * Advance allocation status: processing → delivery.
+     * For distributed status, use verifyOtpAndDistribute instead.
      */
     public function advanceStatus(Request $request, Allocation $allocation)
     {
@@ -207,18 +208,68 @@ class AdminAllocationController extends Controller
             return back()->with('error', 'This allocation cannot be advanced further.');
         }
 
+        // Block advancing to delivery if donor hasn't generated OTP
+        if ($nextStatus === 'delivery' && !$allocation->hasOtp()) {
+            return back()->with('error', 'Cannot move to delivery. The donor has not generated the verification OTP yet.');
+        }
+
+        // Block advancing to distributed directly — must go through OTP verification form
+        if ($nextStatus === 'distributed') {
+            return back()->with('error', 'To mark as distributed, use the OTP verification form. Ask the recipient/NGO to type the OTP.');
+        }
+
         $allocation->update([
             'status' => $nextStatus,
             'notes' => $request->notes ?? $allocation->notes,
         ]);
 
-        $label = match ($nextStatus) {
-            'delivery' => 'moved to delivery',
-            'distributed' => 'marked as distributed',
-            default => 'updated',
-        };
+        return back()->with('success', 'Allocation moved to delivery successfully!');
+    }
 
-        return back()->with('success', "Allocation {$label} successfully!");
+    /**
+     * Verify OTP entered by recipient/NGO on admin panel and mark as distributed.
+     */
+    public function verifyOtpAndDistribute(Request $request, Allocation $allocation)
+    {
+        // Must be in delivery status
+        if (!$allocation->isDelivery()) {
+            return back()->with('error', 'OTP can only be verified when the allocation is in delivery status.');
+        }
+
+        // Must have an OTP
+        if (!$allocation->hasOtp()) {
+            return back()->with('error', 'No OTP has been generated for this allocation yet.');
+        }
+
+        // Already verified
+        if ($allocation->isOtpVerified()) {
+            return back()->with('error', 'OTP has already been verified for this allocation.');
+        }
+
+        // Validate input
+        $request->validate([
+            'otp_code' => 'required|string|size:6',
+            'proof_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            'proof_notes' => 'nullable|string|max:500',
+        ]);
+
+        // Check OTP
+        if ($request->otp_code !== $allocation->otp_code) {
+            return back()->withErrors(['otp_code' => 'Invalid OTP code. Please check and try again.'])->withInput();
+        }
+
+        // OTP correct — upload proof and mark as verified + distributed
+        $path = $request->file('proof_photo')->store('allocation-proofs', 'public');
+
+        $allocation->update([
+            'otp_verified' => true,
+            'otp_verified_at' => now(),
+            'proof_photo' => $path,
+            'proof_notes' => $request->proof_notes,
+            'status' => Allocation::STATUS_DISTRIBUTED,
+        ]);
+
+        return back()->with('success', 'OTP verified successfully! Allocation marked as distributed.');
     }
 
     /**

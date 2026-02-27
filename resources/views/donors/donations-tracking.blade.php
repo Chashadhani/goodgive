@@ -114,6 +114,32 @@
                                             @endif
                                         </div>
                                     @endif
+                                    {{-- OTP Section --}}
+                                    <div class="mt-4">
+                                        @if($alloc->isProcessing() && !$alloc->hasOtp())
+                                            <form action="{{ route('donor.allocation.generate-otp', $alloc) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center space-x-2"
+                                                    onclick="return confirm('Generate a verification OTP for this allocation? The OTP will be shared with the recipient/NGO.')">
+                                                    <span>🔐</span>
+                                                    <span>Generate Verification OTP</span>
+                                                </button>
+                                            </form>
+                                            <p class="text-xs text-gray-400 mt-2 text-center">Admin cannot proceed to delivery until you generate the OTP.</p>
+                                        @elseif($alloc->hasOtp() && !$alloc->isOtpVerified())
+                                            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                                                <p class="text-xs font-bold text-indigo-800 mb-1">🔐 OTP Generated</p>
+                                                <p class="text-lg font-mono font-bold text-indigo-700 tracking-widest text-center">{{ $alloc->otp_code }}</p>
+                                                <p class="text-xs text-indigo-500 mt-1 text-center">Generated {{ $alloc->otp_generated_at->diffForHumans() }}</p>
+                                                <p class="text-xs text-gray-500 mt-1 text-center">This OTP has been shared with the recipient/NGO for verification.</p>
+                                            </div>
+                                        @elseif($alloc->isOtpVerified())
+                                            <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                                <p class="text-xs font-bold text-green-800">✅ OTP Verified & Distributed</p>
+                                                <p class="text-xs text-green-600 mt-1">Verified {{ $alloc->otp_verified_at->diffForHumans() }}</p>
+                                            </div>
+                                        @endif
+                                    </div>
                                     <div class="mt-3 flex items-center justify-between text-xs text-gray-400">
                                         <span>Allocated {{ $alloc->created_at->format('M d, Y') }}</span>
                                         <span>Updated {{ $alloc->updated_at->diffForHumans() }}</span>
@@ -239,6 +265,34 @@
                                     </div>
                                 </div>
                             @endif
+
+                            <!-- OTP Section -->
+                            <div class="px-6 pb-6">
+                                @if($allocation->isProcessing() && !$allocation->hasOtp())
+                                    <form action="{{ route('donor.allocation.generate-otp', $allocation) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+                                            onclick="return confirm('Generate a verification OTP for this allocation? The OTP will be shared with the recipient/NGO.')">
+                                            <span>🔐</span>
+                                            <span>Generate Verification OTP</span>
+                                        </button>
+                                    </form>
+                                    <p class="text-xs text-gray-400 mt-2 text-center">Admin cannot proceed to delivery until you generate the OTP.</p>
+                                @elseif($allocation->hasOtp() && !$allocation->isOtpVerified())
+                                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                                        <p class="text-sm font-bold text-indigo-800 mb-2">🔐 Your Verification OTP</p>
+                                        <p class="text-2xl font-mono font-bold text-indigo-700 tracking-widest text-center py-2">{{ $allocation->otp_code }}</p>
+                                        <p class="text-xs text-indigo-500 text-center">Generated {{ $allocation->otp_generated_at->diffForHumans() }}</p>
+                                        <p class="text-xs text-gray-500 mt-2 text-center">This OTP has been shared with the recipient/NGO. They will use it to confirm receipt.</p>
+                                    </div>
+                                @elseif($allocation->isOtpVerified())
+                                    <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                        <span class="text-3xl">✅</span>
+                                        <p class="text-sm font-bold text-green-800 mt-2">OTP Verified & Distributed</p>
+                                        <p class="text-xs text-green-600 mt-1">Verified {{ $allocation->otp_verified_at->diffForHumans() }}</p>
+                                    </div>
+                                @endif
+                            </div>
 
                             <!-- Footer -->
                             <div class="px-6 py-3 bg-gray-50 text-xs text-gray-500 flex items-center justify-between">

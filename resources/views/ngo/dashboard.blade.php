@@ -162,6 +162,59 @@
                 </div>
             </div>
 
+            <!-- Active Donations Allocated to Your Posts -->
+            @php
+                $ngoPostIds = \App\Models\NgoPost::where('user_id', Auth::id())->pluck('id');
+                $ngoAllocations = \App\Models\Allocation::where('allocatable_type', \App\Models\NgoPost::class)
+                    ->whereIn('allocatable_id', $ngoPostIds)
+                    ->whereIn('status', ['processing', 'delivery'])
+                    ->with(['donation', 'allocatable'])
+                    ->latest()
+                    ->get();
+            @endphp
+
+            @if($ngoAllocations->count() > 0)
+                <div class="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-6 mb-8">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-indigo-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-2xl">🎁</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-indigo-800">Donations Allocated to You!</h3>
+                            <p class="text-indigo-700 mt-1">{{ $ngoAllocations->count() }} donation(s) have been allocated to your posts.</p>
+                            <div class="mt-4 space-y-3">
+                                @foreach($ngoAllocations as $allocation)
+                                    <div class="bg-white rounded-xl p-4 flex items-center justify-between border border-indigo-200">
+                                        <div>
+                                            <p class="font-semibold text-gray-900">
+                                                @if($allocation->isMoney())
+                                                    💰 Rs. {{ number_format($allocation->amount, 2) }}
+                                                @else
+                                                    📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                For: {{ Str::limit($allocation->allocatable->title, 30) }} · 
+                                                <span class="font-semibold {{ $allocation->isDelivery() ? 'text-blue-600' : 'text-yellow-600' }}">
+                                                    {{ $allocation->isDelivery() ? '🚚 Out for Delivery' : '⏳ Processing' }}
+                                                </span>
+                                            </p>
+                                            @if($allocation->hasOtp() && $allocation->isDelivery() && !$allocation->isOtpVerified())
+                                                <p class="text-xs text-orange-600 font-semibold mt-1">🔐 OTP ready — you'll need to provide it during delivery</p>
+                                            @endif
+                                        </div>
+                                        <a href="{{ route('ngo.posts.tracking', $allocation->allocatable) }}" 
+                                           class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                                            Track →
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Recent Posts -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
