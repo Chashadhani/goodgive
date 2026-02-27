@@ -131,6 +131,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Donations Management
         Route::get('/donations', [AdminDonationController::class, 'index'])->name('donations.index');
+        Route::get('/donations/ngo-post-donations', [AdminDonationController::class, 'ngoDonations'])->name('donations.ngo');
         Route::get('/donations/{donation}', [AdminDonationController::class, 'show'])->name('donations.show');
         Route::patch('/donations/{donation}/confirm', [AdminDonationController::class, 'confirm'])->name('donations.confirm');
         Route::patch('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])->name('donations.reject');

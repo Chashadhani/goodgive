@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Donation;
+use App\Models\NgoPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -50,6 +51,53 @@ class AdminDonationController extends Controller
         $donation->load(['user.donorProfile', 'ngoPost', 'reviewer', 'items']);
 
         return view('admin.donations.show', compact('donation'));
+    }
+
+    /**
+     * Display donations made through NGO posts.
+     */
+    public function ngoDonations(Request $request)
+    {
+        $query = Donation::with(['user', 'ngoPost.user', 'reviewer', 'items'])
+            ->whereNotNull('ngo_post_id');
+
+        // Filter by status
+        if ($request->has('status') && in_array($request->status, ['pending', 'confirmed', 'rejected'])) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by type
+        if ($request->has('type') && in_array($request->type, ['money', 'goods'])) {
+            $query->where('donation_type', $request->type);
+        }
+
+        // Filter by NGO post
+        if ($request->has('ngo_post_id') && $request->ngo_post_id) {
+            $query->where('ngo_post_id', $request->ngo_post_id);
+        }
+
+        $donations = $query->latest()->paginate(15);
+
+        // Stats (NGO post donations only)
+        $baseQuery = Donation::whereNotNull('ngo_post_id');
+        $totalNgoDonations = (clone $baseQuery)->count();
+        $pendingNgoDonations = (clone $baseQuery)->pending()->count();
+        $confirmedNgoDonations = (clone $baseQuery)->confirmed()->count();
+        $rejectedNgoDonations = (clone $baseQuery)->where('status', 'rejected')->count();
+        $totalNgoMoneyDonated = (clone $baseQuery)->confirmed()->money()->sum('amount');
+        $totalNgoGoodsDonations = (clone $baseQuery)->confirmed()->goods()->count();
+
+        // Get NGO posts that have donations for the filter dropdown
+        $ngoPostsWithDonations = NgoPost::whereHas('donations')
+            ->with('user')
+            ->orderBy('title')
+            ->get();
+
+        return view('admin.donations.ngo-donations', compact(
+            'donations', 'totalNgoDonations', 'pendingNgoDonations', 'confirmedNgoDonations',
+            'rejectedNgoDonations', 'totalNgoMoneyDonated', 'totalNgoGoodsDonations',
+            'ngoPostsWithDonations'
+        ));
     }
 
     /**
