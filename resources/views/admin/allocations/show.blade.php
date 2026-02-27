@@ -187,26 +187,71 @@
             <div class="bg-white rounded-2xl shadow-sm p-6">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">Advance Status</h3>
                 
-                <form action="{{ route('admin.allocations.advance', $allocation) }}" method="POST">
-                    @csrf
-                    @method('PATCH')
-                    <div class="mb-4">
-                        <textarea name="notes" rows="2" placeholder="Add notes (optional)..." 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+                {{-- OTP Warning for delivery --}}
+                @if($allocation->next_status === 'delivery' && !$allocation->hasOtp())
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <p class="text-sm font-bold text-yellow-800">⚠️ OTP Required</p>
+                        <p class="text-xs text-yellow-600 mt-1">The donor must generate a verification OTP before you can move this allocation to delivery.</p>
                     </div>
+                @endif
 
-                    @if($allocation->next_status === 'delivery')
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2">
+                @if($allocation->next_status === 'delivery')
+                    {{-- Move to Delivery form --}}
+                    <form action="{{ route('admin.allocations.advance', $allocation) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="mb-4">
+                            <textarea name="notes" rows="2" placeholder="Add notes (optional)..." 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+                        </div>
+                        <button type="submit" class="w-full {{ $allocation->hasOtp() ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed' }} text-white px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+                            {{ !$allocation->hasOtp() ? 'disabled' : '' }}>
                             <span>🚚</span>
                             <span>Move to Delivery</span>
                         </button>
-                    @elseif($allocation->next_status === 'distributed')
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2">
-                            <span>✅</span>
-                            <span>Mark as Distributed</span>
-                        </button>
+                    </form>
+                @elseif($allocation->next_status === 'distributed')
+                    {{-- OTP Verification & Mark as Distributed --}}
+                    @if(!$allocation->hasOtp())
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <p class="text-sm font-bold text-yellow-800">⚠️ No OTP Generated</p>
+                            <p class="text-xs text-yellow-600 mt-1">The donor must generate a verification OTP first.</p>
+                        </div>
+                    @elseif(!$allocation->isOtpVerified())
+                        <div class="bg-orange-50 border-2 border-orange-300 rounded-xl p-5">
+                            <p class="text-sm font-bold text-orange-800 mb-2">🔐 OTP Verification Required</p>
+                            <p class="text-xs text-orange-600 mb-4">Ask the recipient/NGO to type their OTP code below to confirm delivery.</p>
+
+                            <form action="{{ route('admin.allocations.verify-otp', $allocation) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Recipient/NGO enters OTP Code</label>
+                                    <input type="text" name="otp_code" maxlength="6" placeholder="000000" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-xl font-mono font-bold tracking-widest focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                                        @error('otp_code') border-red-500 @enderror">
+                                    @error('otp_code')
+                                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload Proof Photo</label>
+                                    <input type="file" name="proof_photo" accept="image/jpeg,image/png" required
+                                        class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
+                                    <p class="text-xs text-gray-400 mt-1">JPG/PNG, max 5MB</p>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                                    <textarea name="proof_notes" rows="2" placeholder="Any notes about the delivery..."
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2">
+                                    <span>✅</span>
+                                    <span>Verify OTP & Mark as Distributed</span>
+                                </button>
+                            </form>
+                        </div>
                     @endif
-                </form>
+                @endif
             </div>
         @else
             <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
@@ -216,28 +261,32 @@
             </div>
         @endif
 
-        <!-- Upload Proof Photo -->
+        <!-- OTP Status Card (no OTP code shown to admin) -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">📸 Upload Proof</h3>
-            <p class="text-sm text-gray-500 mb-4">Upload a photo as distribution proof for the donor.</p>
+            <h3 class="text-lg font-bold text-gray-900 mb-4">🔐 OTP Status</h3>
             
-            <form action="{{ route('admin.allocations.proof', $allocation) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Photo</label>
-                    <input type="file" name="proof_photo" accept="image/jpeg,image/png" required
-                        class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    <p class="text-xs text-gray-400 mt-1">JPG/PNG, max 5MB</p>
+            @if(!$allocation->hasOtp())
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                    <span class="text-2xl block mb-2">⏳</span>
+                    <p class="text-sm font-semibold text-gray-700">Waiting for Donor</p>
+                    <p class="text-xs text-gray-500 mt-1">The donor has not yet generated the verification OTP.</p>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                    <textarea name="proof_notes" rows="2" placeholder="Describe the distribution..." 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+            @elseif(!$allocation->isOtpVerified())
+                <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-center">
+                    <span class="text-2xl block mb-2">🔑</span>
+                    <p class="text-sm font-bold text-indigo-800">OTP Generated</p>
+                    <p class="text-xs text-indigo-500 mt-1">Generated {{ $allocation->otp_generated_at->diffForHumans() }}</p>
+                    <div class="mt-3 bg-indigo-100 rounded-lg p-2">
+                        <p class="text-xs text-indigo-700">The OTP is only visible to the donor and recipient/NGO</p>
+                    </div>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg font-semibold transition">
-                    Upload Proof Photo
-                </button>
-            </form>
+            @else
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <span class="text-2xl block mb-2">✅</span>
+                    <p class="text-sm font-bold text-green-800">OTP Verified</p>
+                    <p class="text-xs text-green-600 mt-1">Verified {{ $allocation->otp_verified_at->diffForHumans() }}</p>
+                </div>
+            @endif
         </div>
 
         <!-- Quick Info -->

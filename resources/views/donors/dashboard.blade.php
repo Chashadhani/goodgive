@@ -113,6 +113,84 @@
                 </div>
             </div>
 
+            <!-- OTP Action Required & Active Allocations -->
+            @php
+                $donorAllocations = \App\Models\Allocation::whereHas('donation', function($q) {
+                    $q->where('user_id', Auth::id());
+                })->whereIn('status', ['processing', 'delivery'])->with(['donation', 'allocatable'])->latest()->get();
+                $needsOtp = $donorAllocations->filter(fn($a) => !$a->hasOtp());
+                $awaitingVerification = $donorAllocations->filter(fn($a) => $a->hasOtp() && !$a->isOtpVerified() && $a->isDelivery());
+                $inProgress = $donorAllocations->filter(fn($a) => $a->hasOtp());
+            @endphp
+
+            @if($needsOtp->count() > 0)
+                <div class="bg-orange-50 border-2 border-orange-300 rounded-2xl p-6 mb-8 animate-pulse">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-2xl">🔑</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-orange-800">OTP Generation Required!</h3>
+                            <p class="text-orange-700 mt-1">{{ $needsOtp->count() }} allocation(s) need you to generate an OTP before delivery can begin.</p>
+                            <div class="mt-4 space-y-3">
+                                @foreach($needsOtp as $allocation)
+                                    <div class="bg-white rounded-xl p-4 flex items-center justify-between border border-orange-200">
+                                        <div>
+                                            <p class="font-semibold text-gray-900">
+                                                @if($allocation->isMoney())
+                                                    💰 Rs. {{ number_format($allocation->amount, 2) }}
+                                                @else
+                                                    📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-gray-500 mt-1">From: {{ $allocation->donation->donation_type === 'money' ? 'Money Donation' : 'Goods Donation' }} · {{ $allocation->created_at->diffForHumans() }}</p>
+                                        </div>
+                                        <a href="{{ route('donor.donations.tracking', $allocation->donation) }}" 
+                                           class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                                            Generate OTP →
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($awaitingVerification->count() > 0)
+                <div class="bg-blue-50 border-2 border-blue-300 rounded-2xl p-6 mb-8">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-2xl">🚚</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-blue-800">Deliveries In Progress</h3>
+                            <p class="text-blue-700 mt-1">{{ $awaitingVerification->count() }} allocation(s) are being delivered. OTP will be verified upon delivery.</p>
+                            <div class="mt-4 space-y-3">
+                                @foreach($awaitingVerification as $allocation)
+                                    <div class="bg-white rounded-xl p-4 flex items-center justify-between border border-blue-200">
+                                        <div>
+                                            <p class="font-semibold text-gray-900">
+                                                @if($allocation->isMoney())
+                                                    💰 Rs. {{ number_format($allocation->amount, 2) }}
+                                                @else
+                                                    📦 {{ $allocation->item_name }} × {{ $allocation->quantity }}
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-gray-500 mt-1">OTP generated · Awaiting delivery verification</p>
+                                        </div>
+                                        <a href="{{ route('donor.donations.tracking', $allocation->donation) }}" 
+                                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                                            Track →
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Recent Activity -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">

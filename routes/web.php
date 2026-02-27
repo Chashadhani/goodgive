@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AdminAllocationController;
 use App\Http\Controllers\Admin\AdminStaffController;
 use App\Http\Controllers\Admin\AdminStaffManagementController;
 use App\Http\Controllers\StaffApplicationController;
+use App\Http\Controllers\OtpVerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -142,6 +143,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/allocations/{allocation}', [AdminAllocationController::class, 'show'])->name('allocations.show');
         Route::patch('/allocations/{allocation}/advance', [AdminAllocationController::class, 'advanceStatus'])->name('allocations.advance');
         Route::post('/allocations/{allocation}/proof', [AdminAllocationController::class, 'uploadProof'])->name('allocations.proof');
+        Route::post('/allocations/{allocation}/verify-otp', [AdminAllocationController::class, 'verifyOtpAndDistribute'])->name('allocations.verify-otp');
 
         // Staff Applications Management
         Route::get('/staff', [AdminStaffController::class, 'index'])->name('staff.index');
@@ -181,6 +183,7 @@ Route::middleware(['auth', 'role:ngo'])->prefix('ngo')->name('ngo.')->group(func
     Route::get('/posts/{ngoPost}/edit', [NgoPostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{ngoPost}', [NgoPostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{ngoPost}', [NgoPostController::class, 'destroy'])->name('posts.destroy');
+    Route::get('/posts/{ngoPost}/tracking', [NgoPostController::class, 'tracking'])->name('posts.tracking');
 });
 
 // =========================================
@@ -197,6 +200,7 @@ Route::middleware(['auth', 'role:donor'])->prefix('donor')->name('donor.')->grou
     Route::post('/donations', [DonationController::class, 'store'])->name('donations.store');
     Route::get('/donations/{donation}', [DonationController::class, 'show'])->name('donations.show');
     Route::get('/donations/{donation}/tracking', [DonationController::class, 'tracking'])->name('donations.tracking');
+    Route::post('/allocations/{allocation}/generate-otp', [DonationController::class, 'generateOtp'])->name('allocation.generate-otp');
     
     Route::get('/history', function () {
         return view('donors.history');
@@ -230,6 +234,8 @@ Route::middleware(['auth', 'role:user'])->prefix('recipient')->name('recipient.'
 // PROFILE ROUTES (All authenticated users)
 // =========================================
 Route::middleware('auth')->group(function () {
+    // OTP Verification (recipient or NGO verifies delivery)
+    Route::post('/otp-verify/{allocation}', [OtpVerificationController::class, 'verify'])->name('otp.verify');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

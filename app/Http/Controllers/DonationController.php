@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Allocation;
 use App\Models\Donation;
 use App\Models\DonationItem;
 use App\Models\NgoPost;
@@ -133,5 +134,37 @@ class DonationController extends Controller
         ]);
 
         return view('donors.donations-tracking', compact('donation'));
+    }
+
+    /**
+     * Generate OTP for an allocation (donor action).
+     * The OTP is shared with the recipient/NGO so they can verify distribution.
+     */
+    public function generateOtp(Allocation $allocation)
+    {
+        // Ensure the donor owns this donation
+        if ($allocation->donation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // OTP can only be generated when allocation is in processing status
+        if (!$allocation->isProcessing()) {
+            return back()->with('error', 'OTP can only be generated when allocation is in processing status.');
+        }
+
+        // Don't regenerate if already exists
+        if ($allocation->hasOtp()) {
+            return back()->with('error', 'OTP has already been generated for this allocation.');
+        }
+
+        // Generate 6-digit OTP
+        $otp = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+        $allocation->update([
+            'otp_code' => $otp,
+            'otp_generated_at' => now(),
+        ]);
+
+        return back()->with('success', 'OTP generated successfully! The recipient/NGO can now see the OTP code.');
     }
 }

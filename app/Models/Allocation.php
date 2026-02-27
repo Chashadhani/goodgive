@@ -29,6 +29,10 @@ class Allocation extends Model
         'quantity',
         'item_name',
         'status',
+        'otp_code',
+        'otp_verified',
+        'otp_generated_at',
+        'otp_verified_at',
         'proof_photo',
         'proof_notes',
         'notes',
@@ -36,6 +40,9 @@ class Allocation extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'otp_verified' => 'boolean',
+        'otp_generated_at' => 'datetime',
+        'otp_verified_at' => 'datetime',
     ];
 
     // ─── Relationships ─────────────────────────────────────
@@ -99,6 +106,16 @@ class Allocation extends Model
         return $this->type === self::TYPE_GOODS;
     }
 
+    public function hasOtp(): bool
+    {
+        return !empty($this->otp_code);
+    }
+
+    public function isOtpVerified(): bool
+    {
+        return (bool) $this->otp_verified;
+    }
+
     // ─── Accessors ─────────────────────────────────────────
 
     public function getStatusLabelAttribute(): string
@@ -106,7 +123,7 @@ class Allocation extends Model
         return match ($this->status) {
             self::STATUS_PROCESSING => '⏳ Processing',
             self::STATUS_DELIVERY => '🚚 In Delivery',
-            self::STATUS_DISTRIBUTED => '✅ Distributed',
+            self::STATUS_DISTRIBUTED => $this->otp_verified ? '✅ OTP Verified & Distributed' : '✅ Distributed',
             default => $this->status,
         };
     }

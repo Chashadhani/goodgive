@@ -232,4 +232,23 @@ class NgoPostController extends Controller
 
         return view('ngo-post-show', compact('ngoPost'));
     }
+
+    /**
+     * Show allocation tracking for an NGO post.
+     */
+    public function tracking(NgoPost $ngoPost)
+    {
+        if ($ngoPost->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $ngoPost->load([
+            'items',
+            'allocations.donation.user',
+            'allocations.donationItem',
+            'allocations.allocatedBy',
+        ]);
+
+        return view('ngo.posts.tracking', compact('ngoPost'));
+    }
 }
