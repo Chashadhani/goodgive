@@ -153,6 +153,30 @@
                     <p class="text-blue-700">Fulfilled on {{ $helpRequest->fulfilled_at->format('M d, Y \a\t h:i A') }}</p>
                 </div>
             @endif
+
+            {{-- Live Donation Tracking Link --}}
+            @if(!$helpRequest->isPending() && !$helpRequest->isRejected())
+                <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 rounded-xl p-5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-lg">📍</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-teal-800">Live Donation Tracking</h3>
+                                <p class="text-xs text-teal-600">See real-time progress of donations being processed for your request</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('recipient.requests.tracking', $helpRequest) }}" 
+                           class="inline-flex items-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition text-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Track Donations
+                        </a>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Actions -->

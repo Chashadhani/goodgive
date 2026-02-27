@@ -67,6 +67,61 @@
                         </div>
                         <p class="text-xs text-gray-500 mt-2 text-right">{{ round((($donation->amount - $donation->remaining_amount) / $donation->amount) * 100) }}% allocated</p>
                     @endif
+
+                    {{-- Per-allocation breakdown for money --}}
+                    @if($donation->allocations->where('type', 'money')->count() > 0)
+                        <div class="mt-6 space-y-4">
+                            <p class="text-sm font-bold text-gray-700 uppercase tracking-wider">Allocation Breakdown</p>
+                            @foreach($donation->allocations->where('type', 'money') as $alloc)
+                                <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div>
+                                            <p class="font-semibold text-gray-900 text-lg">💰 Rs. {{ number_format($alloc->amount) }}</p>
+                                            <p class="text-xs text-gray-500">→ {{ Str::limit($alloc->allocatable?->title ?? 'N/A', 40) }}</p>
+                                            <p class="text-xs text-gray-400">{{ $alloc->allocatable_type === 'App\\Models\\NgoPost' ? 'NGO Post' : 'Help Request' }}</p>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $alloc->status_color }}">{{ $alloc->status_label }}</span>
+                                    </div>
+                                    {{-- Progress stages --}}
+                                    @php
+                                        $mStages = ['processing', 'delivery', 'distributed'];
+                                        $mIdx = array_search($alloc->status, $mStages);
+                                        if ($mIdx === false) $mIdx = -1;
+                                    @endphp
+                                    <div class="flex items-center">
+                                        @foreach($mStages as $idx => $stage)
+                                            <div class="flex-1 flex flex-col items-center">
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2
+                                                    {{ $idx <= $mIdx ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300 text-gray-400' }}">
+                                                    @if($idx < $mIdx) ✓ @elseif($idx === 0) ⏳ @elseif($idx === 1) 🚚 @else ✅ @endif
+                                                </div>
+                                                <p class="text-xs mt-1 font-medium {{ $idx <= $mIdx ? 'text-indigo-600' : 'text-gray-400' }}">
+                                                    {{ $idx === 0 ? 'Processing' : ($idx === 1 ? 'Delivery' : 'Distributed') }}
+                                                </p>
+                                            </div>
+                                            @if($idx < 2)
+                                                <div class="flex-shrink-0 w-10 h-0.5 {{ $idx < $mIdx ? 'bg-indigo-600' : 'bg-gray-200' }} mt-[-14px]"></div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                    {{-- Proof photo --}}
+                                    @if($alloc->isDistributed() && $alloc->proof_photo)
+                                        <div class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
+                                            <p class="text-xs font-bold text-green-800 mb-2">📸 Distribution Proof</p>
+                                            <img src="{{ Storage::url($alloc->proof_photo) }}" alt="Proof" class="w-full rounded-lg max-h-48 object-cover">
+                                            @if($alloc->proof_notes)
+                                                <p class="text-xs text-green-700 mt-2">{{ $alloc->proof_notes }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    <div class="mt-3 flex items-center justify-between text-xs text-gray-400">
+                                        <span>Allocated {{ $alloc->created_at->format('M d, Y') }}</span>
+                                        <span>Updated {{ $alloc->updated_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 @endif
 
                 @if($donation->isGoods() && $donation->items->count())

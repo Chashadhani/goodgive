@@ -262,4 +262,24 @@ class HelpRequestController extends Controller
         return redirect()->route('recipient.requests.index')
             ->with('success', 'Your help request has been deleted.');
     }
+
+    /**
+     * Show live donation tracking for a help request.
+     */
+    public function tracking(HelpRequest $helpRequest)
+    {
+        // Ensure user can only see tracking for their own requests
+        if ($helpRequest->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $helpRequest->load([
+            'items',
+            'allocations.donation.user',
+            'allocations.donationItem',
+            'allocations.allocatedBy',
+        ]);
+
+        return view('users.requests.tracking', compact('helpRequest'));
+    }
 }

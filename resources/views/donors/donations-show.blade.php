@@ -164,6 +164,50 @@
                                         </div>
                                     @endif
                                 </div>
+
+                                {{-- Money allocation details (same as goods) --}}
+                                @if($donation->allocations->where('type', 'money')->count() > 0)
+                                    <div class="space-y-3 mb-4">
+                                        <p class="text-xs text-gray-600 uppercase tracking-wider font-semibold">Allocation Details</p>
+                                        @foreach($donation->allocations->where('type', 'money') as $alloc)
+                                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <div>
+                                                        <span class="font-semibold text-gray-900">💰 Rs. {{ number_format($alloc->amount) }}</span>
+                                                        <span class="text-xs text-gray-500 ml-2">→ {{ Str::limit($alloc->allocatable?->title ?? 'N/A', 30) }}</span>
+                                                    </div>
+                                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $alloc->status_color }}">{{ $alloc->status_label }}</span>
+                                                </div>
+                                                @php
+                                                    $mStages = ['processing', 'delivery', 'distributed'];
+                                                    $mIdx = array_search($alloc->status, $mStages);
+                                                    if ($mIdx === false) $mIdx = -1;
+                                                @endphp
+                                                <div class="flex items-center mt-2">
+                                                    @foreach($mStages as $idx => $stage)
+                                                        <div class="flex-1 flex flex-col items-center">
+                                                            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border
+                                                                {{ $idx <= $mIdx ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300 text-gray-400' }}">
+                                                                @if($idx < $mIdx) ✓ @elseif($idx === 0) ⏳ @elseif($idx === 1) 🚚 @else ✅ @endif
+                                                            </div>
+                                                            <p class="text-[10px] mt-0.5 font-medium {{ $idx <= $mIdx ? 'text-indigo-600' : 'text-gray-400' }}">
+                                                                {{ $idx === 0 ? 'Processing' : ($idx === 1 ? 'Delivery' : 'Distributed') }}
+                                                            </p>
+                                                        </div>
+                                                        @if($idx < 2)
+                                                            <div class="flex-shrink-0 w-8 h-0.5 {{ $idx < $mIdx ? 'bg-indigo-600' : 'bg-gray-200' }} mt-[-12px]"></div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                                @if($alloc->isDistributed() && $alloc->proof_photo)
+                                                    <div class="mt-2 flex items-center text-xs text-green-600">
+                                                        <span>📸 Proof available</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             @endif
 
                             @if($donation->isGoods() && $donation->items->count())

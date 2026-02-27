@@ -14,6 +14,9 @@ use App\Http\Controllers\Admin\AdminNgoPostController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\Admin\AdminDonationController;
 use App\Http\Controllers\Admin\AdminAllocationController;
+use App\Http\Controllers\Admin\AdminStaffController;
+use App\Http\Controllers\Admin\AdminStaffManagementController;
+use App\Http\Controllers\StaffApplicationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -39,6 +42,8 @@ Route::get('/about-us', function () {
 Route::get('/join-staff', function () {
     return view('join-staff');
 })->name('join-staff');
+
+Route::post('/join-staff', [StaffApplicationController::class, 'store'])->name('staff.apply');
 
 // Registration Routes (Guest Only) - Only for Donor, NGO, Recipient
 Route::middleware('guest')->group(function () {
@@ -137,6 +142,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/allocations/{allocation}', [AdminAllocationController::class, 'show'])->name('allocations.show');
         Route::patch('/allocations/{allocation}/advance', [AdminAllocationController::class, 'advanceStatus'])->name('allocations.advance');
         Route::post('/allocations/{allocation}/proof', [AdminAllocationController::class, 'uploadProof'])->name('allocations.proof');
+
+        // Staff Applications Management
+        Route::get('/staff', [AdminStaffController::class, 'index'])->name('staff.index');
+        Route::get('/staff/{staffApplication}', [AdminStaffController::class, 'show'])->name('staff.show');
+        Route::patch('/staff/{staffApplication}/approve', [AdminStaffController::class, 'approve'])->name('staff.approve');
+        Route::patch('/staff/{staffApplication}/reject', [AdminStaffController::class, 'reject'])->name('staff.reject');
+
+        // Staff Management (pause, activate, remove)
+        Route::get('/staff-management', [AdminStaffManagementController::class, 'index'])->name('staff-management.index');
+        Route::patch('/staff-management/{user}/pause', [AdminStaffManagementController::class, 'pause'])->name('staff-management.pause');
+        Route::patch('/staff-management/{user}/activate', [AdminStaffManagementController::class, 'activate'])->name('staff-management.activate');
+        Route::delete('/staff-management/{user}/remove', [AdminStaffManagementController::class, 'remove'])->name('staff-management.remove');
     });
 });
 
@@ -206,6 +223,7 @@ Route::middleware(['auth', 'role:user'])->prefix('recipient')->name('recipient.'
     Route::get('/requests/{helpRequest}/edit', [HelpRequestController::class, 'edit'])->name('requests.edit');
     Route::put('/requests/{helpRequest}', [HelpRequestController::class, 'update'])->name('requests.update');
     Route::delete('/requests/{helpRequest}', [HelpRequestController::class, 'destroy'])->name('requests.destroy');
+    Route::get('/requests/{helpRequest}/tracking', [HelpRequestController::class, 'tracking'])->name('requests.tracking');
 });
 
 // =========================================

@@ -410,96 +410,119 @@
             
             <div class="bg-white rounded-2xl p-8 md:p-12 text-gray-900 shadow-2xl">
                 <div class="mb-8">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Application Process</h3>
-                    <p class="text-gray-600">Complete the form below to begin your verification</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Staff Application</h3>
+                    <p class="text-gray-600">Complete the form below to apply for a staff position</p>
                 </div>
 
-                <form class="space-y-6 text-left">
-                    <!-- Organization Name -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Organization Name *</label>
-                        <input type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter your NGO/Organization name">
+                @if(session('success'))
+                    <div class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+                        <div class="flex items-center">
+                            <span class="text-green-500 text-xl mr-3">✅</span>
+                            <p class="text-green-800 font-medium">{{ session('success') }}</p>
+                        </div>
                     </div>
+                @endif
 
-                    <!-- Registration Number -->
+                @if(session('error'))
+                    <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                        <p class="text-red-800">{{ session('error') }}</p>
+                    </div>
+                @endif
+
+                <form action="{{ route('staff.apply') }}" method="POST" enctype="multipart/form-data" class="space-y-6 text-left">
+                    @csrf
+
+                    <!-- Full Name -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Registration Number *</label>
-                        <input type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Your official registration number">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" name="full_name" value="{{ old('full_name') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('full_name') border-red-500 @enderror" placeholder="Enter your full name">
+                        @error('full_name') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <!-- Email -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Official Email *</label>
-                        <input type="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="organization@example.com">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" name="email" value="{{ old('email') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('email') border-red-500 @enderror" placeholder="you@example.com">
+                        @error('email') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Phone -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone *</label>
-                        <input type="tel" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="+1 (555) 000-0000">
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Phone -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('phone') border-red-500 @enderror" placeholder="+94 7X XXX XXXX">
+                            @error('phone') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                        </div>
 
-                    <!-- Focus Area -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Primary Focus Area *</label>
-                        <select required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            <option value="">Select your focus area</option>
-                            <option>Education</option>
-                            <option>Healthcare</option>
-                            <option>Shelter & Housing</option>
-                            <option>Food Security</option>
-                            <option>Child Welfare</option>
-                            <option>Elderly Care</option>
-                            <option>Disaster Relief</option>
-                            <option>Environment</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-
-                    <!-- Years Operating -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Years in Operation *</label>
-                        <input type="number" required min="0" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Number of years">
-                    </div>
-
-                    <!-- Website -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Website (Optional)</label>
-                        <input type="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="https://yourorganization.org">
-                    </div>
-
-                    <!-- Brief Description -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Brief Description *</label>
-                        <textarea required rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Tell us about your organization and mission..."></textarea>
-                    </div>
-
-                    <!-- File Upload Note -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <span class="text-blue-600 text-xl">📎</span>
-                            <div class="text-sm text-blue-900">
-                                <div class="font-semibold mb-1">Document Upload</div>
-                                <p>After submission, you'll receive an email with instructions to upload your registration certificate, tax exemption documents, and ID proofs securely.</p>
-                            </div>
+                        <!-- NIC -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">NIC Number *</label>
+                            <input type="text" name="nic" value="{{ old('nic') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('nic') border-red-500 @enderror" placeholder="National ID Card number">
+                            @error('nic') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
-                    <!-- Terms & Conditions -->
-                    <div class="flex items-start space-x-3">
-                        <input type="checkbox" required class="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <label class="text-sm text-gray-700">
-                            I agree to the <a href="#" class="text-indigo-600 hover:underline">Terms & Conditions</a> and confirm that all information provided is accurate and verifiable.
-                        </label>
+                    <!-- Address -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Address *</label>
+                        <textarea name="address" required rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('address') border-red-500 @enderror" placeholder="Your full address">{{ old('address') }}</textarea>
+                        @error('address') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Submit Button -->
+                    <!-- Position -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Desired Position *</label>
+                        <select name="position" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('position') border-red-500 @enderror">
+                            <option value="">Select a position</option>
+                            <option value="field_officer" {{ old('position') == 'field_officer' ? 'selected' : '' }}>Field Officer</option>
+                            <option value="coordinator" {{ old('position') == 'coordinator' ? 'selected' : '' }}>Coordinator</option>
+                            <option value="volunteer_manager" {{ old('position') == 'volunteer_manager' ? 'selected' : '' }}>Volunteer Manager</option>
+                            <option value="logistics" {{ old('position') == 'logistics' ? 'selected' : '' }}>Logistics & Distribution</option>
+                            <option value="data_entry" {{ old('position') == 'data_entry' ? 'selected' : '' }}>Data Entry Operator</option>
+                            <option value="community_outreach" {{ old('position') == 'community_outreach' ? 'selected' : '' }}>Community Outreach</option>
+                            <option value="other" {{ old('position') == 'other' ? 'selected' : '' }}>Other</option>
+                        </select>
+                        @error('position') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Experience -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Experience & Skills *</label>
+                        <textarea name="experience" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('experience') border-red-500 @enderror" placeholder="Briefly describe your relevant experience and skills...">{{ old('experience') }}</textarea>
+                        @error('experience') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Motivation -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Why do you want to join GoodGive? *</label>
+                        <textarea name="motivation" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('motivation') border-red-500 @enderror" placeholder="Tell us what motivates you to join our team...">{{ old('motivation') }}</textarea>
+                        @error('motivation') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Resume Upload -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Upload Resume/CV (Optional)</label>
+                        <input type="file" name="resume" accept=".pdf,.doc,.docx" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent @error('resume') border-red-500 @enderror">
+                        <p class="text-xs text-gray-500 mt-1">PDF, DOC, DOCX — Max 5MB</p>
+                        @error('resume') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" name="terms" required class="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <label class="text-sm text-gray-700">
+                            I confirm that all information provided is accurate and I agree to the <a href="#" class="text-indigo-600 hover:underline">Terms & Conditions</a>.
+                        </label>
+                        @error('terms') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Submit -->
                     <div class="pt-4">
                         <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition shadow-lg hover:shadow-xl">
                             Submit Application →
                         </button>
                         <p class="text-center text-sm text-gray-500 mt-4">
-                            We'll review your application within 3-5 business days
+                            We'll review your application within 3-5 business days. If approved, login credentials will be generated for you.
                         </p>
                     </div>
                 </form>

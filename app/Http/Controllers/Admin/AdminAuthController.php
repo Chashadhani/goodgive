@@ -33,11 +33,19 @@ class AdminAuthController extends Controller
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $user = Auth::user();
 
-            // Check if user is admin
-            if ($user->user_type !== User::TYPE_ADMIN) {
+            // Check if user is admin or staff
+            if (!in_array($user->user_type, [User::TYPE_ADMIN, User::TYPE_STAFF])) {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'You do not have admin access.',
+                ])->withInput($request->only('email'));
+            }
+
+            // Check if account is active (paused staff cannot log in)
+            if (!$user->is_active) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account has been paused. Please contact the administrator.',
                 ])->withInput($request->only('email'));
             }
 
