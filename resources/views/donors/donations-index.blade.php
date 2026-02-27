@@ -115,6 +115,9 @@
                                         </div>
                                         <p class="text-sm text-gray-500 mt-1">
                                             {{ $donation->created_at->format('M d, Y h:i A') }}
+                                            @if($donation->isMoney() && $donation->payment_method)
+                                                · {{ $donation->payment_method === 'pickup' ? '🚗 Pickup' : '💳 Online' }}
+                                            @endif
                                             @if($donation->ngoPost)
                                                 • For: {{ Str::limit($donation->ngoPost->title, 40) }}
                                             @else
