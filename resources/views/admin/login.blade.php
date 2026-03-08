@@ -14,8 +14,8 @@
     <div class="w-full max-w-md px-6">
         <!-- Logo -->
         <div class="text-center mb-8">
-            <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="w-16 h-16 object-contain mx-auto mb-4">
-            <h1 class="text-2xl font-bold text-white">GoodGive Admin</h1>
+            <h1 class="text-3xl font-bold mb-4"><span class="text-white">Good</span><span class="text-orange-500">Give</span></h1>
+            <p class="text-lg font-semibold text-white">Admin</p>
             <p class="text-gray-400 mt-1">Secure administrator access</p>
         </div>
 

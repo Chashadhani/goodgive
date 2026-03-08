@@ -18,10 +18,7 @@
     <div class="bg-white border-b border-gray-200 py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <a href="{{ route('home') }}" class="flex items-center">
-                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                    <span class="text-white font-bold text-lg">G</span>
-                </div>
-                <span class="ml-3 text-2xl font-bold text-gray-900">GoodGive</span>
+                <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="h-10 w-auto">
             </a>
             <a href="{{ route('home') }}" class="text-indigo-600 hover:text-indigo-700 font-medium flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
