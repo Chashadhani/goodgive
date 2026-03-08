@@ -60,6 +60,14 @@ class NgoPost extends Model
     }
 
     /**
+     * Donations made to this NGO post by donors.
+     */
+    public function donations(): HasMany
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    /**
      * Allocations made to this post from stock.
      */
     public function allocations(): MorphMany

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/jpeg" href="{{ asset('favicon/favicon.jpeg') }}">
     <title>How It Works - {{ config('app.name', 'GoodGive') }}</title>
 
     <!-- Fonts -->

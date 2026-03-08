@@ -10,9 +10,8 @@
             <div class="flex items-center">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" 
-                       class="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
-                        {{ config('app.name', 'Laravel') }}
+                    <a href="{{ route('dashboard') }}" class="hover:scale-105 transition-transform duration-300">
+                        <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="h-10 w-auto">
                     </a>
                 </div>
 

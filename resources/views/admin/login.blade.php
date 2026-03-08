@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/jpeg" href="{{ asset('favicon/favicon.jpeg') }}">
     <title>Admin Login - {{ config('app.name', 'GoodGive') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -13,9 +14,7 @@
     <div class="w-full max-w-md px-6">
         <!-- Logo -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
-                <span class="text-white font-bold text-3xl">G</span>
-            </div>
+            <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="w-16 h-16 object-contain mx-auto mb-4">
             <h1 class="text-2xl font-bold text-white">GoodGive Admin</h1>
             <p class="text-gray-400 mt-1">Secure administrator access</p>
         </div>

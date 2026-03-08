@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/jpeg" href="{{ asset('favicon/favicon.jpeg') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') - {{ config('app.name', 'GoodGive') }}</title>
 
@@ -13,12 +14,10 @@
 <body class="font-sans antialiased bg-gray-100">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900 text-white fixed h-full">
+        <aside class="w-64 bg-gray-900 text-white fixed h-full flex flex-col">
             <div class="p-6">
                 <div class="flex items-center space-x-2">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                        <span class="text-white font-bold text-xl">G</span>
-                    </div>
+                    <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="w-10 h-10 object-contain">
                     <div>
                         <span class="text-xl font-bold">GoodGive</span>
                         <p class="text-xs text-gray-400">Admin Panel</p>
@@ -26,7 +25,7 @@
                 </div>
             </div>
 
-            <nav class="mt-6">
+            <nav class="mt-6 flex-1 overflow-y-auto pb-4">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.dashboard') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
@@ -63,11 +62,17 @@
                     </svg>
                     NGO Posts
                 </a>
-                <a href="{{ route('admin.donations.index') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.donations.*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition">
+                <a href="{{ route('admin.donations.index') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.donations.index') || request()->routeIs('admin.donations.show') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Donations
+                </a>
+                <a href="{{ route('admin.donations.ngo') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.donations.ngo') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    NGO Post Donations
                 </a>
                 <a href="{{ route('admin.allocations.index') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.allocations.*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +96,7 @@
                 @endif
             </nav>
 
-            <div class="absolute bottom-0 w-64 p-6">
+            <div class="w-64 p-6 flex-shrink-0">
                 <div class="border-t border-gray-700 pt-4">
                     <p class="text-sm text-gray-400">Logged in as</p>
                     <p class="font-medium">{{ Auth::user()->name }}</p>

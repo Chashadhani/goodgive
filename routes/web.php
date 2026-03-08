@@ -131,6 +131,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Donations Management
         Route::get('/donations', [AdminDonationController::class, 'index'])->name('donations.index');
+        Route::get('/donations/ngo-post-donations', [AdminDonationController::class, 'ngoDonations'])->name('donations.ngo');
         Route::get('/donations/{donation}', [AdminDonationController::class, 'show'])->name('donations.show');
         Route::patch('/donations/{donation}/confirm', [AdminDonationController::class, 'confirm'])->name('donations.confirm');
         Route::patch('/donations/{donation}/reject', [AdminDonationController::class, 'reject'])->name('donations.reject');
@@ -201,7 +202,12 @@ Route::middleware(['auth', 'role:donor'])->prefix('donor')->name('donor.')->grou
     Route::get('/donations/{donation}', [DonationController::class, 'show'])->name('donations.show');
     Route::get('/donations/{donation}/tracking', [DonationController::class, 'tracking'])->name('donations.tracking');
     Route::post('/allocations/{allocation}/generate-otp', [DonationController::class, 'generateOtp'])->name('allocation.generate-otp');
-    
+
+    // Stripe payment routes
+    Route::get('/donations/{donation}/stripe/success', [DonationController::class, 'stripeSuccess'])->name('stripe.success');
+    Route::get('/donations/{donation}/stripe/cancel', [DonationController::class, 'stripeCancel'])->name('stripe.cancel');
+    Route::post('/donations/{donation}/stripe/retry', [DonationController::class, 'retryStripe'])->name('stripe.retry');
+
     Route::get('/history', function () {
         return view('donors.history');
     })->name('history');
