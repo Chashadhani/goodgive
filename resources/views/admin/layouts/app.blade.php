@@ -13,7 +13,7 @@
 <body class="font-sans antialiased bg-gray-100">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900 text-white fixed h-full">
+        <aside class="w-64 bg-gray-900 text-white fixed h-full flex flex-col">
             <div class="p-6">
                 <div class="flex items-center space-x-2">
                     <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
@@ -26,7 +26,7 @@
                 </div>
             </div>
 
-            <nav class="mt-6">
+            <nav class="mt-6 flex-1 overflow-y-auto pb-4">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.dashboard') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
@@ -97,7 +97,7 @@
                 @endif
             </nav>
 
-            <div class="absolute bottom-0 w-64 p-6">
+            <div class="w-64 p-6 flex-shrink-0">
                 <div class="border-t border-gray-700 pt-4">
                     <p class="text-sm text-gray-400">Logged in as</p>
                     <p class="font-medium">{{ Auth::user()->name }}</p>
