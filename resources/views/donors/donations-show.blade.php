@@ -17,9 +17,27 @@
             <!-- Back Link -->
             <div class="mb-6">
                 <a href="{{ route('donor.donations.index') }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                    ← Back to My Donations
+                    &larr; Back to My Donations
                 </a>
             </div>
+
+            @if(session('success'))
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                    <p class="text-green-800 font-medium">{{ session('success') }}</p>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                    <p class="text-red-800 font-medium">{{ session('error') }}</p>
+                </div>
+            @endif
+
+            @if(session('info'))
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                    <p class="text-blue-800 font-medium">{{ session('info') }}</p>
+                </div>
+            @endif
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <!-- Header with status -->
@@ -76,7 +94,7 @@
                                     @if($donation->payment_method === 'pickup')
                                         🚗 Pickup
                                     @elseif($donation->payment_method === 'online')
-                                        💳 Online Pay
+                                        💳 Online Pay (Stripe)
                                     @else
                                         —
                                     @endif
@@ -306,6 +324,27 @@
                                     <p class="text-gray-900 mt-1">{{ $donation->admin_notes }}</p>
                                 </div>
                             @endif
+                        </div>
+                    @endif
+
+                    <!-- Retry Stripe Payment (for pending online donations) -->
+                    @if($donation->isPending() && $donation->isMoney() && $donation->payment_method === 'online')
+                        <div class="border-t border-gray-100 pt-6">
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="font-semibold text-yellow-800">Payment Pending</h3>
+                                        <p class="text-sm text-yellow-700 mt-1">Your online payment has not been completed yet.</p>
+                                    </div>
+                                    <form action="{{ route('donor.stripe.retry', $donation) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg font-semibold transition">
+                                            Retry Payment
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>

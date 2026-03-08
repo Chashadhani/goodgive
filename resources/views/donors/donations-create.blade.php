@@ -36,9 +36,10 @@
                 </div>
 
                 <!-- Form -->
-                <form action="{{ route('donor.donations.store') }}" method="POST" class="p-8" 
-                    x-data="{ 
+                <form action="{{ route('donor.donations.store') }}" method="POST" class="p-8"
+                    x-data="{
                         donationType: '{{ old('donation_type', 'money') }}',
+                        paymentMethod: '{{ old('payment_method', '') }}',
                         items: [{ item_name: '', quantity: 1, notes: '' }],
                         addItem() {
                             this.items.push({ item_name: '', quantity: 1, notes: '' });
@@ -127,7 +128,7 @@
                         <!-- Payment Method -->
                         <div class="mt-6">
                             <label class="block text-sm font-semibold text-gray-700 mb-3">Payment Method *</label>
-                            <div class="grid grid-cols-2 gap-4" x-data="{ paymentMethod: '{{ old('payment_method', '') }}' }">
+                            <div class="grid grid-cols-2 gap-4">
                                 <label class="relative cursor-pointer" @click="paymentMethod = 'pickup'">
                                     <input type="radio" name="payment_method" value="pickup" class="sr-only peer"
                                         :checked="paymentMethod === 'pickup'">
@@ -145,9 +146,21 @@
                                         :class="paymentMethod === 'online' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-gray-300'">
                                         <span class="text-3xl block mb-2">💳</span>
                                         <span class="font-semibold text-gray-900">Online Pay</span>
-                                        <p class="text-xs text-gray-500 mt-1">Transfer the money online / bank transfer</p>
+                                        <p class="text-xs text-gray-500 mt-1">Pay securely via Stripe</p>
                                     </div>
                                 </label>
+                            </div>
+                            <!-- Stripe info notice -->
+                            <div x-show="paymentMethod === 'online'" x-transition class="mt-3">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2">
+                                    <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <p class="text-sm text-blue-700">
+                                        You will be redirected to Stripe's secure checkout to complete your payment.
+                                        After successful payment, your donation will be automatically confirmed.
+                                    </p>
+                                </div>
                             </div>
                             @error('payment_method')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -246,7 +259,8 @@
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                         <a href="{{ route('donor.dashboard') }}" class="text-gray-500 hover:text-gray-700 font-medium">Cancel</a>
                         <button type="submit" class="bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-8 py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-yellow-600 transition shadow-lg">
-                            Submit Donation
+                            <span x-show="donationType === 'money' && paymentMethod === 'online'">Pay with Stripe</span>
+                            <span x-show="donationType !== 'money' || paymentMethod !== 'online'">Submit Donation</span>
                         </button>
                     </div>
                 </form>

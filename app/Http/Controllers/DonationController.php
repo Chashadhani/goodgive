@@ -9,6 +9,9 @@ use App\Models\NgoPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Stripe\Stripe;
+use Stripe\Checkout\Session as StripeSession;
 
 class DonationController extends Controller
 {
@@ -50,7 +53,7 @@ class DonationController extends Controller
 
         $validated = $request->validate($rules);
 
-        DB::transaction(function () use ($validated, $request) {
+        $donation = DB::transaction(function () use ($validated) {
             $donation = Donation::create([
                 'user_id' => Auth::id(),
                 'ngo_post_id' => $validated['ngo_post_id'] ?? null,
@@ -71,9 +74,167 @@ class DonationController extends Controller
                     ]);
                 }
             }
+
+            return $donation;
         });
 
+        // If online payment, initiate Stripe Checkout
+        if ($donation->isMoney() && $donation->payment_method === Donation::PAYMENT_ONLINE) {
+            return $this->initiateStripeCheckout($donation);
+        }
+
         return redirect()->route('donor.donations.index')->with('success', 'Donation submitted successfully! It will be reviewed by an admin.');
+    }
+
+    /**
+     * Create a Stripe Checkout Session and redirect to Stripe.
+     */
+    private function initiateStripeCheckout(Donation $donation)
+    {
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $session = StripeSession::create([
+                'payment_method_types' => ['card'],
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => config('services.stripe.currency', 'usd'),
+                        'product_data' => [
+                            'name' => 'Donation #' . $donation->id . ' to ' . config('app.name', 'GoodGive'),
+                            'description' => 'Thank you for your generous donation!',
+                        ],
+                        'unit_amount' => (int) round($donation->amount * 100), // Stripe expects cents
+                    ],
+                    'quantity' => 1,
+                ]],
+                'mode' => 'payment',
+                'success_url' => route('donor.stripe.success', $donation) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('donor.stripe.cancel', $donation),
+                'client_reference_id' => (string) $donation->id,
+                'customer_email' => Auth::user()->email,
+                'metadata' => [
+                    'donation_id' => $donation->id,
+                    'donor_id' => Auth::id(),
+                ],
+            ]);
+
+            // Store the session ID on the donation
+            $donation->update(['stripe_session_id' => $session->id]);
+
+            return redirect()->away($session->url);
+
+        } catch (\Exception $e) {
+            Log::error('Stripe Checkout session creation failed', [
+                'donation_id' => $donation->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('donor.donations.show', $donation)
+                ->with('error', 'Unable to connect to Stripe. Your donation has been saved as pending. Please try again later.');
+        }
+    }
+
+    /**
+     * Handle successful Stripe payment callback.
+     */
+    public function stripeSuccess(Request $request, Donation $donation)
+    {
+        if ($donation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // Prevent double-processing
+        if ($donation->isConfirmed()) {
+            return redirect()->route('donor.donations.show', $donation)
+                ->with('info', 'This donation has already been processed.');
+        }
+
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId) {
+            return redirect()->route('donor.donations.show', $donation)
+                ->with('error', 'Invalid payment response. Please contact support.');
+        }
+
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $session = StripeSession::retrieve($sessionId);
+
+            // Verify the session belongs to this donation
+            if ($session->client_reference_id !== (string) $donation->id) {
+                Log::warning('Stripe session mismatch', [
+                    'donation_id' => $donation->id,
+                    'session_reference' => $session->client_reference_id,
+                ]);
+                return redirect()->route('donor.donations.show', $donation)
+                    ->with('error', 'Payment verification failed. Please contact support.');
+            }
+
+            if ($session->payment_status === 'paid') {
+                DB::transaction(function () use ($donation, $session) {
+                    $donation->update([
+                        'status' => Donation::STATUS_CONFIRMED,
+                        'stripe_session_id' => $session->id,
+                        'reviewed_at' => now(),
+                        'admin_notes' => 'Auto-confirmed via Stripe payment. Payment Intent: ' . ($session->payment_intent ?? 'N/A'),
+                    ]);
+
+                    // Update donor profile stats (mirrors AdminDonationController::confirm())
+                    $donorProfile = $donation->user->donorProfile;
+                    if ($donorProfile) {
+                        $donorProfile->increment('donation_count');
+                        if ($donation->isMoney()) {
+                            $donorProfile->increment('total_donated', $donation->amount);
+                        }
+                    }
+                });
+
+                return redirect()->route('donor.donations.show', $donation)
+                    ->with('success', 'Payment successful! Your donation of $' . number_format($donation->amount, 2) . ' has been confirmed. Thank you for your generosity!');
+            }
+
+            return redirect()->route('donor.donations.show', $donation)
+                ->with('error', 'Payment was not completed. Your donation remains pending. Please try again.');
+
+        } catch (\Exception $e) {
+            Log::error('Stripe payment verification failed', [
+                'donation_id' => $donation->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('donor.donations.show', $donation)
+                ->with('error', 'An error occurred while verifying your payment. Please contact support.');
+        }
+    }
+
+    /**
+     * Handle Stripe payment cancellation.
+     */
+    public function stripeCancel(Request $request, Donation $donation)
+    {
+        if ($donation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return redirect()->route('donor.donations.show', $donation)
+            ->with('info', 'Payment was cancelled. Your donation has been saved and you can try paying again later.');
+    }
+
+    /**
+     * Retry Stripe payment for a pending online donation.
+     */
+    public function retryStripe(Donation $donation)
+    {
+        if ($donation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!$donation->isPending() || !$donation->isMoney() || $donation->payment_method !== Donation::PAYMENT_ONLINE) {
+            return back()->with('error', 'This donation cannot be retried for online payment.');
+        }
+
+        return $this->initiateStripeCheckout($donation);
     }
 
     /**
