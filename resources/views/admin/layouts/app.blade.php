@@ -17,9 +17,8 @@
         <aside class="w-64 bg-gray-900 text-white fixed h-full flex flex-col">
             <div class="p-6">
                 <div class="flex items-center space-x-2">
-                    <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="w-10 h-10 object-contain">
                     <div>
-                        <span class="text-xl font-bold">GoodGive</span>
+                        <span class="text-xl font-bold"><span class="text-white">Good</span><span class="text-orange-500">Give</span></span>
                         <p class="text-xs text-gray-400">Admin Panel</p>
                     </div>
                 </div>
