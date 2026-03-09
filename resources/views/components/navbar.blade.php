@@ -4,10 +4,7 @@
             <!-- Logo/Site Name -->
             <div class="flex items-center">
                 <a href="{{ route('home') }}" class="flex items-center">
-                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-                        <span class="text-white font-bold text-sm">G</span>
-                    </div>
-                    <span class="ml-2 text-xl font-semibold text-gray-900">GoodGive</span>
+                    <img src="{{ asset('logo/good give logo.png') }}" alt="GoodGive Logo" class="h-10 w-auto">
                 </a>
             </div>
 

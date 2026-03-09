@@ -60,12 +60,18 @@
                                 @if($donation->payment_method === 'pickup')
                                     🚗 Pickup
                                 @elseif($donation->payment_method === 'online')
-                                    💳 Online Pay
+                                    💳 Online Pay (Stripe)
                                 @else
                                     —
                                 @endif
                             </p>
                         </div>
+                        @if($donation->stripe_session_id && $donation->isConfirmed())
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Payment Status</p>
+                                <p class="text-sm font-semibold text-green-600 mt-1">Paid via Stripe</p>
+                            </div>
+                        @endif
                     @else
                         <div class="bg-gray-50 rounded-xl p-4">
                             <p class="text-xs text-gray-500 uppercase tracking-wide">Total Items</p>
