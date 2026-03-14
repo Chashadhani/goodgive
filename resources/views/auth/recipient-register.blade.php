@@ -124,7 +124,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('recipient.register') }}" method="POST" class="space-y-5">
+                <form action="{{ route('recipient.register') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
 
                     <!-- Full Name -->
@@ -189,6 +189,23 @@
                             required
                             class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition @error('location') border-red-500 @enderror"
                         >
+                    </div>
+
+                    <!-- ID / Supporting Documents -->
+                    <div>
+                        <label for="documents" class="block text-sm font-semibold text-gray-700 mb-2">
+                            ID / Supporting Documents
+                        </label>
+                        <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white transition @error('documents') border-red-500 @enderror">
+                            <input 
+                                type="file" 
+                                id="documents" 
+                                name="documents" 
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                class="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            >
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Upload NIC, passport or any ID proof (PDF, JPG, PNG, DOC - Max 10MB)</p>
                     </div>
 
                     <!-- Password -->

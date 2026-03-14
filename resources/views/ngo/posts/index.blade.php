@@ -95,6 +95,8 @@
                                     <td class="px-6 py-4">
                                         @if($post->status === 'approved')
                                             <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Approved</span>
+                                        @elseif($post->status === 'fulfilled')
+                                            <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full">🎉 Fulfilled</span>
                                         @elseif($post->status === 'rejected')
                                             <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Rejected</span>
                                         @else

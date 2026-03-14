@@ -151,6 +151,33 @@
                                     </div>
                                 </label>
                             </div>
+                            <!-- Pickup fields -->
+                            <div x-show="paymentMethod === 'pickup'" x-transition class="mt-4 space-y-4">
+                                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-purple-800 mb-3">Pickup Details</h4>
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label for="pickup_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                                            <input type="tel" name="pickup_phone" id="pickup_phone"
+                                                value="{{ old('pickup_phone') }}"
+                                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                                placeholder="e.g., 0771234567">
+                                            @error('pickup_phone')
+                                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label for="pickup_address" class="block text-sm font-medium text-gray-700 mb-1">Pickup Address *</label>
+                                            <textarea name="pickup_address" id="pickup_address" rows="3"
+                                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                                placeholder="Enter the address where our team should pick up the donation">{{ old('pickup_address') }}</textarea>
+                                            @error('pickup_address')
+                                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Stripe info notice -->
                             <div x-show="paymentMethod === 'online'" x-transition class="mt-3">
                                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start space-x-2">

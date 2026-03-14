@@ -43,9 +43,9 @@ class NgoPostController extends Controller
             'request_type' => 'required|in:money,goods',
             'goal_amount' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'items' => 'required_if:request_type,goods|array|min:1',
-            'items.*.item_name' => 'required_if:request_type,goods|string|max:255',
-            'items.*.quantity' => 'required_if:request_type,goods|integer|min:1',
+            'items' => 'required_if:request_type,goods|nullable|array|min:1',
+            'items.*.item_name' => 'required_if:request_type,goods|nullable|string|max:255',
+            'items.*.quantity' => 'required_if:request_type,goods|nullable|integer|min:1',
             'items.*.notes' => 'nullable|string|max:500',
         ]);
 
@@ -85,7 +85,9 @@ class NgoPostController extends Controller
             abort(403);
         }
 
-        $ngoPost->load('items');
+        $ngoPost->load(['items', 'donations' => function ($q) {
+            $q->where('status', 'confirmed');
+        }, 'donations.items']);
 
         return view('ngo.posts.show', compact('ngoPost'));
     }
@@ -121,9 +123,9 @@ class NgoPostController extends Controller
             'request_type' => 'required|in:money,goods',
             'goal_amount' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'items' => 'required_if:request_type,goods|array|min:1',
-            'items.*.item_name' => 'required_if:request_type,goods|string|max:255',
-            'items.*.quantity' => 'required_if:request_type,goods|integer|min:1',
+            'items' => 'required_if:request_type,goods|nullable|array|min:1',
+            'items.*.item_name' => 'required_if:request_type,goods|nullable|string|max:255',
+            'items.*.quantity' => 'required_if:request_type,goods|nullable|integer|min:1',
             'items.*.notes' => 'nullable|string|max:500',
         ]);
 
@@ -190,7 +192,9 @@ class NgoPostController extends Controller
      */
     public function publicIndex(Request $request)
     {
-        $query = NgoPost::approved()->with(['user', 'user.ngoProfile', 'items']);
+        $query = NgoPost::approved()->with(['user', 'user.ngoProfile', 'items', 'donations' => function ($q) {
+            $q->where('status', 'confirmed');
+        }, 'donations.items']);
 
         // Search
         if ($request->filled('search')) {
@@ -224,11 +228,13 @@ class NgoPostController extends Controller
      */
     public function publicShow(NgoPost $ngoPost)
     {
-        if (!$ngoPost->isApproved()) {
+        if (!$ngoPost->isApproved() && !$ngoPost->isFulfilled()) {
             abort(404);
         }
 
-        $ngoPost->load(['user', 'user.ngoProfile', 'items']);
+        $ngoPost->load(['user', 'user.ngoProfile', 'items', 'donations' => function ($q) {
+            $q->where('status', 'confirmed');
+        }, 'donations.items']);
 
         return view('ngo-post-show', compact('ngoPost'));
     }

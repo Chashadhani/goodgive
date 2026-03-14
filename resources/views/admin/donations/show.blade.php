@@ -125,6 +125,36 @@
                         <p class="text-xs text-blue-500 uppercase tracking-wide mb-2">Linked to NGO Post</p>
                         <h3 class="font-semibold text-blue-900">{{ $donation->ngoPost->title }}</h3>
                         <p class="text-sm text-blue-700 mt-1">{{ Str::limit($donation->ngoPost->description, 150) }}</p>
+                        @if($donation->ngoPost->isMoney() && $donation->ngoPost->goal_amount)
+                            @php
+                                $raised = $donation->ngoPost->confirmed_money;
+                                $goal = $donation->ngoPost->goal_amount;
+                                $percent = $donation->ngoPost->money_progress_percent;
+                            @endphp
+                            <div class="mt-3 pt-3 border-t border-blue-200">
+                                <div class="flex items-center justify-between text-sm mb-1">
+                                    <span class="text-blue-700 font-medium">Rs. {{ number_format($raised) }} / Rs. {{ number_format($goal) }}</span>
+                                    <span class="text-gray-500">{{ $percent }}%</span>
+                                </div>
+                                <div class="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
+                                    <div class="h-2.5 rounded-full bg-blue-500 transition-all" style="width: {{ $percent }}%"></div>
+                                </div>
+                            </div>
+                        @endif
+                        @if($donation->ngoPost->isGoods() && $donation->ngoPost->items->count())
+                            @php
+                                $overallPercent = $donation->ngoPost->goods_progress_percent;
+                            @endphp
+                            <div class="mt-3 pt-3 border-t border-blue-200">
+                                <div class="flex items-center justify-between text-sm mb-1">
+                                    <span class="text-blue-700 font-medium">Goods Progress</span>
+                                    <span class="text-gray-500">{{ $overallPercent }}%</span>
+                                </div>
+                                <div class="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
+                                    <div class="h-2.5 rounded-full bg-blue-500 transition-all" style="width: {{ $overallPercent }}%"></div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @else
                     <div class="border border-gray-200 bg-gray-50 rounded-xl p-4">

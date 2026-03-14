@@ -81,45 +81,14 @@
                     <!-- Title -->
                     <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{{ $ngoPost->title }}</h1>
 
-                    <!-- Goal Amount -->
-                    @if($ngoPost->isMoney() && $ngoPost->goal_amount)
-                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-8">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm text-green-600 font-medium uppercase tracking-wide">Donation Goal</p>
-                                    <p class="text-3xl font-bold text-green-700 mt-1">Rs. {{ number_format($ngoPost->goal_amount) }}</p>
-                                </div>
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span class="text-3xl">🎯</span>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+                    <!-- Donation Progress -->
+                    <x-donation-progress :ngoPost="$ngoPost" />
 
-                    <!-- Items Needed (goods) -->
-                    @if($ngoPost->isGoods() && $ngoPost->items->count())
-                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
-                            <div class="flex items-center justify-between mb-4">
-                                <div>
-                                    <p class="text-sm text-blue-600 font-medium uppercase tracking-wide">Items Needed</p>
-                                    <p class="text-lg font-bold text-blue-700 mt-1">{{ $ngoPost->total_items_count }} total items</p>
-                                </div>
-                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span class="text-3xl">📦</span>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                @foreach($ngoPost->items as $item)
-                                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-100">
-                                        <div>
-                                            <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
-                                            @if($item->notes)
-                                                <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
-                                            @endif
-                                        </div>
-                                        <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
-                                    </div>
-                                @endforeach
+                    @if($ngoPost->isFulfilled())
+                        <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-8">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-2xl">🎉</span>
+                                <p class="text-green-800 font-semibold">This post's goal has been fulfilled! Thank you to all donors.</p>
                             </div>
                         </div>
                     @endif
@@ -135,10 +104,17 @@
                             <!-- Donate Button -->
                             @auth
                                 @if(auth()->user()->isDonor())
-                                    <a href="{{ route('donor.donations.create', ['ngo_post_id' => $ngoPost->id]) }}" class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-                                        <span class="text-2xl">💝</span>
-                                        <span>Donate Now</span>
-                                    </a>
+                                    @if($ngoPost->isFulfilled())
+                                        <button class="flex-1 bg-gray-400 text-white px-8 py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center space-x-2" disabled>
+                                            <span class="text-2xl">✅</span>
+                                            <span>Goal Fulfilled</span>
+                                        </button>
+                                    @else
+                                        <a href="{{ route('donor.donations.create', ['ngo_post_id' => $ngoPost->id]) }}" class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                                            <span class="text-2xl">💝</span>
+                                            <span>Donate Now</span>
+                                        </a>
+                                    @endif
                                 @else
                                     <button class="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 opacity-75 cursor-not-allowed" title="Only donors can make donations">
                                         <span class="text-2xl">💝</span>
@@ -153,10 +129,66 @@
                             @endauth
                             
                             <!-- Share Button -->
-                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!')" class="px-6 py-4 border-2 border-gray-300 hover:bg-gray-50 rounded-xl font-semibold transition flex items-center justify-center space-x-2">
-                                <span>📤</span>
-                                <span>Share</span>
-                            </button>
+                            <div x-data="{ 
+                                shareOpen: false, 
+                                copied: false,
+                                copyLink() {
+                                    const url = window.location.href;
+                                    if (navigator.clipboard && window.isSecureContext) {
+                                        navigator.clipboard.writeText(url).then(() => {
+                                            this.copied = true;
+                                            setTimeout(() => this.copied = false, 2000);
+                                        });
+                                    } else {
+                                        const textArea = document.createElement('textarea');
+                                        textArea.value = url;
+                                        textArea.style.position = 'fixed';
+                                        textArea.style.left = '-9999px';
+                                        document.body.appendChild(textArea);
+                                        textArea.select();
+                                        document.execCommand('copy');
+                                        document.body.removeChild(textArea);
+                                        this.copied = true;
+                                        setTimeout(() => this.copied = false, 2000);
+                                    }
+                                }
+                            }" class="relative">
+                                <button @click="if (navigator.share) { navigator.share({ title: '{{ addslashes($ngoPost->title) }}', text: 'Support this cause on GoodGive: {{ addslashes($ngoPost->title) }}', url: window.location.href }).catch(() => {}); } else { shareOpen = !shareOpen }" class="px-6 py-4 border-2 border-gray-300 hover:bg-gray-50 rounded-xl font-semibold transition flex items-center justify-center space-x-2">
+                                    <span>📤</span>
+                                    <span>Share</span>
+                                </button>
+                                <!-- Fallback dropdown for desktop -->
+                                <div x-show="shareOpen" @click.outside="shareOpen = false" x-transition
+                                    class="absolute bottom-full mb-2 right-0 w-64 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-50">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Share this post</p>
+                                    <div class="space-y-1">
+                                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('ngo-post.show', $ngoPost)) }}" target="_blank" rel="noopener noreferrer"
+                                            class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition text-sm text-gray-700">
+                                            <span class="text-lg">📘</span><span>Facebook</span>
+                                        </a>
+                                        <a href="https://twitter.com/intent/tweet?text={{ urlencode('Support this cause: ' . $ngoPost->title) }}&url={{ urlencode(route('ngo-post.show', $ngoPost)) }}" target="_blank" rel="noopener noreferrer"
+                                            class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-sky-50 transition text-sm text-gray-700">
+                                            <span class="text-lg">🐦</span><span>Twitter / X</span>
+                                        </a>
+                                        <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" @click="copyLink()"
+                                            class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-pink-50 transition text-sm text-gray-700">
+                                            <span class="text-lg">📸</span><span>Instagram (link copied)</span>
+                                        </a>
+                                        <a href="https://api.whatsapp.com/send?text={{ urlencode('Support this cause on GoodGive: ' . $ngoPost->title . ' ' . route('ngo-post.show', $ngoPost)) }}" target="_blank" rel="noopener noreferrer"
+                                            class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm text-gray-700">
+                                            <span class="text-lg">💬</span><span>WhatsApp</span>
+                                        </a>
+                                        <a href="mailto:?subject={{ urlencode('Check out this cause: ' . $ngoPost->title) }}&body={{ urlencode('I found this cause on GoodGive and thought you might be interested: ' . route('ngo-post.show', $ngoPost)) }}"
+                                            class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition text-sm text-gray-700">
+                                            <span class="text-lg">📧</span><span>Email</span>
+                                        </a>
+                                        <button @click="copyLink()"
+                                            class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition text-sm text-gray-700">
+                                            <span class="text-lg">🔗</span><span x-text="copied ? '✅ Copied!' : 'Copy Link'"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Heart/Save Button -->
                             <button class="px-6 py-4 border-2 border-gray-300 hover:bg-red-50 hover:border-red-300 rounded-xl font-semibold transition flex items-center justify-center space-x-2">

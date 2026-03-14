@@ -1,40 +1,72 @@
 @extends('admin.layouts.app')
 
-@section('title', 'User Accounts')
+@section('title', 'All Users')
 
 @section('content')
 <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">User Account Verification</h1>
-    <p class="text-gray-600 mt-1">Review and approve user accounts. Approved users can submit help requests.</p>
+    <h1 class="text-3xl font-bold text-gray-900">All User Accounts</h1>
+    <p class="text-gray-600 mt-1">View and manage all users across every role.</p>
 </div>
 
-<!-- Status Tabs -->
+<!-- Role Filter Tabs -->
 <div class="mb-6">
     <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8">
-            <a href="{{ route('admin.users.index', ['status' => 'all']) }}" 
-               class="py-4 px-1 border-b-2 font-medium text-sm {{ $status === 'all' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                All Accounts
+        <nav class="-mb-px flex space-x-6 overflow-x-auto">
+            <a href="{{ route('admin.users.index', ['role' => 'all', 'status' => 'all']) }}" 
+               class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ $role === 'all' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                All Users
                 <span class="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['all'] }}</span>
             </a>
-            <a href="{{ route('admin.users.index', ['status' => 'pending']) }}" 
-               class="py-4 px-1 border-b-2 font-medium text-sm {{ $status === 'pending' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Pending Approval
-                <span class="ml-2 bg-orange-100 text-orange-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['pending'] }}</span>
+            <a href="{{ route('admin.users.index', ['role' => 'donor', 'status' => 'all']) }}" 
+               class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ $role === 'donor' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                🤝 Donors
+                <span class="ml-2 bg-orange-100 text-orange-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['donor'] }}</span>
             </a>
-            <a href="{{ route('admin.users.index', ['status' => 'approved']) }}" 
-               class="py-4 px-1 border-b-2 font-medium text-sm {{ $status === 'approved' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Approved
-                <span class="ml-2 bg-green-100 text-green-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['approved'] }}</span>
+            <a href="{{ route('admin.users.index', ['role' => 'ngo', 'status' => 'all']) }}" 
+               class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ $role === 'ngo' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                🏢 NGOs
+                <span class="ml-2 bg-purple-100 text-purple-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['ngo'] }}</span>
             </a>
-            <a href="{{ route('admin.users.index', ['status' => 'rejected']) }}" 
-               class="py-4 px-1 border-b-2 font-medium text-sm {{ $status === 'rejected' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Rejected
-                <span class="ml-2 bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['rejected'] }}</span>
+            <a href="{{ route('admin.users.index', ['role' => 'user', 'status' => 'all']) }}" 
+               class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ $role === 'user' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                🙋 Recipients
+                <span class="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['user'] }}</span>
+            </a>
+            <a href="{{ route('admin.users.index', ['role' => 'admin', 'status' => 'all']) }}" 
+               class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ $role === 'admin' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                🛡️ Admins
+                <span class="ml-2 bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['admin'] }}</span>
+            </a>
+            <a href="{{ route('admin.users.index', ['role' => 'staff', 'status' => 'all']) }}" 
+               class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap {{ $role === 'staff' ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                👤 Staff
+                <span class="ml-2 bg-teal-100 text-teal-600 py-0.5 px-2 rounded-full text-xs">{{ $counts['staff'] }}</span>
             </a>
         </nav>
     </div>
 </div>
+
+<!-- Recipient Status Sub-filters (only when viewing recipients) -->
+@if($role === 'user')
+<div class="mb-4 flex space-x-3">
+    <a href="{{ route('admin.users.index', ['role' => 'user', 'status' => 'all']) }}" 
+       class="px-4 py-2 rounded-lg text-sm font-medium {{ $status === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200' }}">
+        All
+    </a>
+    <a href="{{ route('admin.users.index', ['role' => 'user', 'status' => 'pending']) }}" 
+       class="px-4 py-2 rounded-lg text-sm font-medium {{ $status === 'pending' ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200' }}">
+        Pending ({{ $counts['pending'] }})
+    </a>
+    <a href="{{ route('admin.users.index', ['role' => 'user', 'status' => 'approved']) }}" 
+       class="px-4 py-2 rounded-lg text-sm font-medium {{ $status === 'approved' ? 'bg-green-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200' }}">
+        Approved ({{ $counts['approved'] }})
+    </a>
+    <a href="{{ route('admin.users.index', ['role' => 'user', 'status' => 'rejected']) }}" 
+       class="px-4 py-2 rounded-lg text-sm font-medium {{ $status === 'rejected' ? 'bg-red-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200' }}">
+        Rejected ({{ $counts['rejected'] }})
+    </a>
+</div>
+@endif
 
 <!-- Users List -->
 <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -43,20 +75,30 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @foreach($users as $user)
+                    @php
+                        $roleColors = [
+                            'donor' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-700', 'label' => '🤝 Donor'],
+                            'ngo' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => '🏢 NGO'],
+                            'user' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'label' => '🙋 Recipient'],
+                            'admin' => ['bg' => 'bg-red-100', 'text' => 'text-red-700', 'label' => '🛡️ Admin'],
+                            'staff' => ['bg' => 'bg-teal-100', 'text' => 'text-teal-700', 'label' => '👤 Staff'],
+                        ];
+                        $rc = $roleColors[$user->user_type] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'label' => ucfirst($user->user_type)];
+                    @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                                    <span class="text-pink-600 font-semibold text-sm">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
+                                <div class="w-10 h-10 {{ $rc['bg'] }} rounded-full flex items-center justify-center">
+                                    <span class="{{ $rc['text'] }} font-semibold text-sm">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
@@ -65,33 +107,45 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $user->recipientProfile->phone ?? 'N/A' }}</div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $rc['bg'] }} {{ $rc['text'] }}">
+                                {{ $rc['label'] }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">
+                                @if($user->user_type === 'donor')
+                                    <span class="text-gray-500">Phone:</span> {{ $user->donorProfile->phone ?? 'N/A' }}<br>
+                                    <span class="text-gray-500">Donated:</span> Rs. {{ number_format($user->donorProfile->total_donated ?? 0, 2) }}
+                                @elseif($user->user_type === 'ngo')
+                                    <span class="text-gray-500">Org:</span> {{ $user->ngoProfile->organization_name ?? 'N/A' }}<br>
+                                    <span class="text-gray-500">Phone:</span> {{ $user->ngoProfile->phone ?? 'N/A' }}
+                                @elseif($user->user_type === 'user')
+                                    <span class="text-gray-500">Phone:</span> {{ $user->recipientProfile->phone ?? 'N/A' }}<br>
+                                    <span class="text-gray-500">Location:</span> {{ $user->recipientProfile->location ?? 'N/A' }}
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $user->recipientProfile->location ?? 'N/A' }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @if($user->recipientProfile?->status === 'approved')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                    </svg>
-                                    Approved
-                                </span>
-                            @elseif($user->recipientProfile?->status === 'rejected')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                    </svg>
-                                    Rejected
-                                </span>
+                            @if($user->user_type === 'user')
+                                @if($user->recipientProfile?->status === 'approved')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Approved</span>
+                                @elseif($user->recipientProfile?->status === 'rejected')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Rejected</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⏳ Pending</span>
+                                @endif
+                            @elseif($user->user_type === 'ngo')
+                                @if($user->ngoProfile?->verification_status === 'verified')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Verified</span>
+                                @elseif($user->ngoProfile?->verification_status === 'rejected')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Rejected</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⏳ Pending</span>
+                                @endif
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                    </svg>
-                                    Pending
-                                </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Active</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -99,9 +153,9 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end space-x-2">
-                                <a href="{{ route('admin.users.show', $user) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
+                                <a href="{{ route('admin.users.show', $user) }}" class="text-indigo-600 hover:text-indigo-900 font-medium">View</a>
                                 
-                                @if($user->recipientProfile?->status === 'pending')
+                                @if($user->user_type === 'user' && $user->recipientProfile?->status === 'pending')
                                     <form action="{{ route('admin.users.approve', $user) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
@@ -109,7 +163,7 @@
                                     </form>
                                 @endif
                                 
-                                @if($user->recipientProfile?->status !== 'rejected')
+                                @if($user->user_type === 'user' && $user->recipientProfile?->status !== 'rejected')
                                     <button type="button" onclick="openRejectModal({{ $user->id }})" class="text-red-600 hover:text-red-900">Reject</button>
                                 @endif
                             </div>
@@ -121,25 +175,15 @@
 
         <!-- Pagination -->
         <div class="px-6 py-4 border-t border-gray-200">
-            {{ $users->appends(['status' => $status])->links() }}
+            {{ $users->appends(['status' => $status, 'role' => $role])->links() }}
         </div>
     @else
         <div class="text-center py-12">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No user accounts found</h3>
-            <p class="mt-1 text-sm text-gray-500">
-                @if($status === 'pending')
-                    No accounts pending approval at the moment.
-                @elseif($status === 'approved')
-                    No approved accounts yet.
-                @elseif($status === 'rejected')
-                    No rejected accounts.
-                @else
-                    No user accounts registered yet.
-                @endif
-            </p>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+            <p class="mt-1 text-sm text-gray-500">No users match the selected filters.</p>
         </div>
     @endif
 </div>

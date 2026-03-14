@@ -16,8 +16,20 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $profile = null;
+
+        if ($user->user_type === 'donor') {
+            $profile = $user->donorProfile;
+        } elseif ($user->user_type === 'ngo') {
+            $profile = $user->ngoProfile;
+        } elseif ($user->user_type === 'user') {
+            $profile = $user->recipientProfile;
+        }
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'profile' => $profile,
         ]);
     }
 
@@ -26,13 +38,27 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->safe()->only(['name', 'email']));
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        // Update role-specific profile
+        if ($user->user_type === 'donor' && $user->donorProfile) {
+            $user->donorProfile->update($request->safe()->only(['phone', 'address']));
+        } elseif ($user->user_type === 'ngo' && $user->ngoProfile) {
+            $user->ngoProfile->update($request->safe()->only([
+                'organization_name', 'address', 'contact_person', 'phone',
+            ]));
+        } elseif ($user->user_type === 'user' && $user->recipientProfile) {
+            $user->recipientProfile->update($request->safe()->only([
+                'phone', 'location', 'need_category', 'description',
+            ]));
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

@@ -100,10 +100,6 @@
                     </div>
                 </div>
 
-                <!-- SVG Placeholder -->
-                <div class="hidden lg:block">
-                    <img src="/assets/svg/ngo-register.svg" alt="NGO Registration Design" class="w-full max-w-md">
-                </div>
             </div>
 
             <!-- Right Side - Registration Form -->
@@ -216,16 +212,20 @@
                     </div>
 
                     <!-- Registration Documents -->
-                    <div>
+                    <div x-data="{ fileName: '' }">
                         <label for="documents" class="block text-sm font-semibold text-gray-700 mb-2">
                             Registration Documents <span class="text-red-500">*</span>
                         </label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-white hover:bg-gray-50 transition cursor-pointer">
+                        <label for="documents" class="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-white hover:bg-gray-50 transition cursor-pointer @error('documents') border-red-500 @enderror">
                             <div class="text-4xl mb-2">📄</div>
-                            <p class="font-semibold text-gray-700 mb-1">Upload Documents</p>
-                            <p class="text-xs text-gray-500">Click to upload or drag and drop</p>
-                            <input type="file" id="documents" name="documents" class="hidden" multiple>
-                        </div>
+                            <p class="font-semibold text-gray-700 mb-1" x-text="fileName || 'Upload Documents'"></p>
+                            <p class="text-xs text-gray-500">Click to select file (PDF, JPG, PNG, DOC — Max 10MB)</p>
+                            <input type="file" id="documents" name="documents" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                @change="fileName = $event.target.files[0]?.name || ''">
+                        </label>
+                        @error('documents')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Password -->

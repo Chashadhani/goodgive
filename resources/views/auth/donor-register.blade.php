@@ -85,10 +85,6 @@
                     </div>
                 </div>
 
-                <!-- SVG Placeholder -->
-                <div class="hidden lg:block">
-                    <img src="/assets/svg/donor-register.svg" alt="Donor Registration Design" class="w-full max-w-md">
-                </div>
             </div>
 
             <!-- Right Side - Registration Form -->

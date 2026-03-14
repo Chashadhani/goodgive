@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -36,6 +37,7 @@ class RecipientRegisterController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'mobile' => ['required', 'string', 'max:20'],
             'location' => ['required', 'string', 'max:255'],
+            'documents' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'consent' => ['required', 'accepted'],
         ]);
@@ -47,11 +49,18 @@ class RecipientRegisterController extends Controller
             'user_type' => User::TYPE_USER,
         ]);
 
+        // Handle document upload
+        $documentPath = null;
+        if ($request->hasFile('documents')) {
+            $documentPath = $request->file('documents')->store('recipient-documents', 'public');
+        }
+
         // Create basic recipient profile for account approval
         RecipientProfile::create([
             'user_id' => $user->id,
             'phone' => $request->mobile,
             'location' => $request->location,
+            'documents' => $documentPath,
             'status' => 'pending', // Account pending approval
         ]);
 

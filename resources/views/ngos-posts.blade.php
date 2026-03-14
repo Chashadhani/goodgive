@@ -165,6 +165,30 @@
                                     @endif
                                 </div>
 
+                                <!-- Progress Bar -->
+                                @if($post->isMoney() && $post->goal_amount)
+                                    @php $percent = $post->money_progress_percent; @endphp
+                                    <div class="mb-4">
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="text-green-600 font-medium">Rs. {{ number_format($post->confirmed_money) }} raised</span>
+                                            <span class="text-gray-500">{{ $percent }}%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                            <div class="h-2 rounded-full bg-green-500" style="width: {{ $percent }}%"></div>
+                                        </div>
+                                    </div>
+                                @elseif($post->isGoods() && $post->items->count())
+                                    @php $percent = $post->goods_progress_percent; @endphp
+                                    <div class="mb-4">
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="text-blue-600 font-medium">{{ $percent }}% fulfilled</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                            <div class="h-2 rounded-full bg-blue-500" style="width: {{ $percent }}%"></div>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <!-- Action Buttons -->
                                 <div class="flex gap-2">
                                     <a href="{{ route('ngo-post.show', $post) }}" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold transition text-sm text-center">

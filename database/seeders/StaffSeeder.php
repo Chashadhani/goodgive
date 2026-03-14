@@ -35,8 +35,20 @@ class StaffSeeder extends Seeder
             ]
         );
 
+        User::updateOrCreate(
+            ['email' => 'demostaff@goodgive.com'],
+            [
+                'name' => 'Demo Staff',
+                'email' => 'demostaff@goodgive.com',
+                'password' => Hash::make('demo123456'),
+                'user_type' => User::TYPE_STAFF,
+                'email_verified_at' => now(),
+            ]
+        );
+
         $this->command->info('Staff users created successfully!');
         $this->command->info('Email: staff@goodgive.com / Password: staff123456');
         $this->command->info('Email: staff2@goodgive.com / Password: staff123456');
+        $this->command->info('Email: demostaff@goodgive.com / Password: demo123456');
     }
 }

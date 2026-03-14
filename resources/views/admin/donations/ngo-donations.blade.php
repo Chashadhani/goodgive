@@ -137,6 +137,27 @@
                         </td>
                         <td class="px-6 py-4">
                             <p class="text-sm font-medium text-gray-900">{{ Str::limit($donation->ngoPost->title, 30) }}</p>
+                            @if($donation->ngoPost->isMoney() && $donation->ngoPost->goal_amount)
+                                @php
+                                    $percent = $donation->ngoPost->money_progress_percent;
+                                @endphp
+                                <div class="mt-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                        <div class="h-1.5 rounded-full {{ $percent >= 100 ? 'bg-green-500' : 'bg-blue-500' }}" style="width: {{ $percent }}%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $percent }}% of Rs. {{ number_format($donation->ngoPost->goal_amount) }}</p>
+                                </div>
+                            @elseif($donation->ngoPost->isGoods())
+                                @php
+                                    $percent = $donation->ngoPost->goods_progress_percent;
+                                @endphp
+                                <div class="mt-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                        <div class="h-1.5 rounded-full {{ $percent >= 100 ? 'bg-green-500' : 'bg-blue-500' }}" style="width: {{ $percent }}%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $percent }}% fulfilled</p>
+                                </div>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($donation->ngoPost->user)

@@ -10,41 +10,62 @@ use Illuminate\Http\Request;
 class UserVerificationController extends Controller
 {
     /**
-     * Display a listing of all users who need help (recipients)
+     * Display a listing of all users with role filtering
      */
     public function index(Request $request)
     {
         $status = $request->get('status', 'all');
+        $role = $request->get('role', 'all');
         
-        $query = User::where('user_type', 'user')
-            ->with('recipientProfile')
-            ->latest();
-        
+        $query = User::with(['donorProfile', 'ngoProfile', 'recipientProfile'])->latest();
+
+        // Filter by role
+        if ($role !== 'all') {
+            $query->where('user_type', $role);
+        }
+
+        // Filter by status (only applies to recipients)
         if ($status !== 'all') {
-            $query->whereHas('recipientProfile', function ($q) use ($status) {
-                $q->where('status', $status);
-            });
+            if ($role === 'all' || $role === 'user') {
+                $query->where(function ($q) use ($status, $role) {
+                    if ($role === 'user') {
+                        $q->whereHas('recipientProfile', function ($sub) use ($status) {
+                            $sub->where('status', $status);
+                        });
+                    } else {
+                        // When filtering all roles by status, only filter recipients
+                        $q->where('user_type', 'user')->whereHas('recipientProfile', function ($sub) use ($status) {
+                            $sub->where('status', $status);
+                        });
+                    }
+                });
+            }
         }
         
-        $users = $query->paginate(10);
+        $users = $query->paginate(15);
         
-        // Get counts for tabs
+        // Get counts
         $counts = [
-            'all' => User::where('user_type', 'user')->count(),
+            'all' => User::count(),
+            'donor' => User::where('user_type', 'donor')->count(),
+            'ngo' => User::where('user_type', 'ngo')->count(),
+            'user' => User::where('user_type', 'user')->count(),
+            'admin' => User::where('user_type', 'admin')->count(),
+            'staff' => User::where('user_type', 'staff')->count(),
             'pending' => RecipientProfile::where('status', 'pending')->count(),
             'approved' => RecipientProfile::where('status', 'approved')->count(),
             'rejected' => RecipientProfile::where('status', 'rejected')->count(),
         ];
         
-        return view('admin.users.index', compact('users', 'status', 'counts'));
+        return view('admin.users.index', compact('users', 'status', 'role', 'counts'));
     }
 
     /**
-     * Show user details
+     * Show user details for any role
      */
     public function show(User $user)
     {
-        $user->load('recipientProfile');
+        $user->load(['donorProfile', 'ngoProfile', 'recipientProfile']);
         
         return view('admin.users.show', compact('user'));
     }

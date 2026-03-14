@@ -36,6 +36,8 @@
                     <div class="flex items-center space-x-3 mb-4">
                         @if($ngoPost->status === 'approved')
                             <span class="px-4 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">✅ Approved</span>
+                        @elseif($ngoPost->status === 'fulfilled')
+                            <span class="px-4 py-1 bg-emerald-100 text-emerald-800 text-sm font-semibold rounded-full">🎉 Goal Fulfilled</span>
                         @elseif($ngoPost->status === 'rejected')
                             <span class="px-4 py-1 bg-red-100 text-red-800 text-sm font-semibold rounded-full">❌ Rejected</span>
                         @else
@@ -58,31 +60,7 @@
                         </span>
                     </div>
 
-                    @if($ngoPost->isMoney() && $ngoPost->goal_amount)
-                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                            <p class="text-sm text-gray-500">Donation Goal</p>
-                            <p class="text-2xl font-bold text-green-600">Rs. {{ number_format($ngoPost->goal_amount) }}</p>
-                        </div>
-                    @endif
-
-                    @if($ngoPost->isGoods() && $ngoPost->items->count())
-                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                            <p class="text-sm font-semibold text-blue-800 mb-3">Items Needed</p>
-                            <div class="space-y-2">
-                                @foreach($ngoPost->items as $item)
-                                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-blue-100">
-                                        <div>
-                                            <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
-                                            @if($item->notes)
-                                                <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
-                                            @endif
-                                        </div>
-                                        <span class="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
+                    <x-donation-progress :ngoPost="$ngoPost" />
 
                     <div class="prose max-w-none text-gray-700 mb-6">
                         {!! nl2br(e($ngoPost->description)) !!}

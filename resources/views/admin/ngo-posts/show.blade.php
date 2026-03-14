@@ -50,32 +50,7 @@
 
                 <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ $ngoPost->title }}</h1>
 
-                @if($ngoPost->isMoney() && $ngoPost->goal_amount)
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                        <p class="text-sm text-green-600 font-medium">💰 Donation Goal (Money)</p>
-                        <p class="text-2xl font-bold text-green-700">Rs. {{ number_format($ngoPost->goal_amount) }}</p>
-                    </div>
-                @endif
-
-                @if($ngoPost->isGoods() && $ngoPost->items->count())
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                        <p class="text-sm text-blue-600 font-medium mb-3">📦 Items Needed (Goods)</p>
-                        <div class="space-y-2">
-                            @foreach($ngoPost->items as $item)
-                                <div class="flex items-center justify-between bg-white rounded-lg px-4 py-2 border border-blue-100">
-                                    <div>
-                                        <span class="font-medium text-gray-900">{{ $item->item_name }}</span>
-                                        @if($item->notes)
-                                            <span class="text-xs text-gray-500 ml-2">({{ $item->notes }})</span>
-                                        @endif
-                                    </div>
-                                    <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">× {{ $item->quantity }}</span>
-                                </div>
-                            @endforeach
-                        </div>
-                        <p class="text-sm text-blue-600 mt-3 font-semibold">Total items: {{ $ngoPost->total_items_count }}</p>
-                    </div>
-                @endif
+                <x-donation-progress :ngoPost="$ngoPost" />
 
                 <div class="prose max-w-none text-gray-700 leading-relaxed">
                     {!! nl2br(e($ngoPost->description)) !!}
@@ -123,6 +98,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span class="font-semibold">Approved</span>
+                </div>
+            @elseif($ngoPost->status === 'fulfilled')
+                <div class="flex items-center space-x-2 text-emerald-700 bg-emerald-50 rounded-lg p-4">
+                    <span class="text-xl">🎉</span>
+                    <span class="font-semibold">Goal Fulfilled</span>
                 </div>
             @elseif($ngoPost->status === 'rejected')
                 <div class="flex items-center space-x-2 text-red-700 bg-red-50 rounded-lg p-4">

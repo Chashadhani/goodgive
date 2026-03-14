@@ -28,6 +28,8 @@ class Donation extends Model
         'donation_type',
         'amount',
         'payment_method',
+        'pickup_phone',
+        'pickup_address',
         'stripe_session_id',
         'status',
         'donor_notes',

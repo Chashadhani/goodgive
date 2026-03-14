@@ -44,6 +44,11 @@ class DonationController extends Controller
         if ($request->donation_type === 'money') {
             $rules['amount'] = 'required|numeric|min:1';
             $rules['payment_method'] = 'required|in:pickup,online';
+
+            if ($request->payment_method === 'pickup') {
+                $rules['pickup_phone'] = 'required|string|max:20';
+                $rules['pickup_address'] = 'required|string|max:500';
+            }
         } else {
             $rules['items'] = 'required|array|min:1';
             $rules['items.*.item_name'] = 'required|string|max:255';
@@ -60,6 +65,8 @@ class DonationController extends Controller
                 'donation_type' => $validated['donation_type'],
                 'amount' => $validated['donation_type'] === 'money' ? $validated['amount'] : null,
                 'payment_method' => $validated['donation_type'] === 'money' ? $validated['payment_method'] : null,
+                'pickup_phone' => $validated['pickup_phone'] ?? null,
+                'pickup_address' => $validated['pickup_address'] ?? null,
                 'donor_notes' => $validated['donor_notes'] ?? null,
                 'status' => 'pending',
             ]);
@@ -186,6 +193,14 @@ class DonationController extends Controller
                         $donorProfile->increment('donation_count');
                         if ($donation->isMoney()) {
                             $donorProfile->increment('total_donated', $donation->amount);
+                        }
+                    }
+
+                    // Auto-fulfill NGO post if goal is met
+                    if ($donation->ngo_post_id) {
+                        $ngoPost = $donation->ngoPost;
+                        if ($ngoPost && $ngoPost->isApproved() && $ngoPost->isGoalMet()) {
+                            $ngoPost->update(['status' => 'fulfilled']);
                         }
                     }
                 });

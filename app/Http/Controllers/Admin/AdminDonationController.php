@@ -48,7 +48,9 @@ class AdminDonationController extends Controller
      */
     public function show(Donation $donation)
     {
-        $donation->load(['user.donorProfile', 'ngoPost', 'reviewer', 'items']);
+        $donation->load(['user.donorProfile', 'ngoPost.items', 'ngoPost.donations' => function ($q) {
+            $q->where('status', 'confirmed');
+        }, 'ngoPost.donations.items', 'reviewer', 'items']);
 
         return view('admin.donations.show', compact('donation'));
     }
@@ -58,7 +60,9 @@ class AdminDonationController extends Controller
      */
     public function ngoDonations(Request $request)
     {
-        $query = Donation::with(['user', 'ngoPost.user', 'reviewer', 'items'])
+        $query = Donation::with(['user', 'ngoPost.items', 'ngoPost.donations' => function ($q) {
+            $q->where('status', 'confirmed');
+        }, 'ngoPost.donations.items', 'ngoPost.user', 'reviewer', 'items'])
             ->whereNotNull('ngo_post_id');
 
         // Filter by status
@@ -122,6 +126,14 @@ class AdminDonationController extends Controller
             $donorProfile->increment('donation_count');
             if ($donation->isMoney()) {
                 $donorProfile->increment('total_donated', $donation->amount);
+            }
+        }
+
+        // Auto-fulfill NGO post if goal is met
+        if ($donation->ngo_post_id) {
+            $ngoPost = $donation->ngoPost;
+            if ($ngoPost && $ngoPost->isApproved() && $ngoPost->isGoalMet()) {
+                $ngoPost->update(['status' => 'fulfilled']);
             }
         }
 

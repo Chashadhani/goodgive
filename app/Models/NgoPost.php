@@ -127,4 +127,113 @@ class NgoPost extends Model
     {
         return $this->status === 'rejected';
     }
+
+    public function isFulfilled(): bool
+    {
+        return $this->status === 'fulfilled';
+    }
+
+    /**
+     * Total confirmed money donated to this post.
+     */
+    public function getConfirmedMoneyAttribute(): float
+    {
+        return (float) $this->donations()
+            ->where('status', 'confirmed')
+            ->where('donation_type', 'money')
+            ->sum('amount');
+    }
+
+    /**
+     * Money progress percentage (capped at 100).
+     */
+    public function getMoneyProgressPercentAttribute(): float
+    {
+        if (!$this->goal_amount || $this->goal_amount <= 0) {
+            return 0;
+        }
+        return min(100, round(($this->confirmed_money / $this->goal_amount) * 100, 1));
+    }
+
+    /**
+     * Check if the money goal has been met or exceeded.
+     */
+    public function isMoneyGoalMet(): bool
+    {
+        return $this->isMoney() && $this->goal_amount && $this->confirmed_money >= $this->goal_amount;
+    }
+
+    /**
+     * Get confirmed donated quantities per item name for goods posts.
+     * Returns array like ['Rice bags' => 5, 'Shirts' => 10]
+     */
+    public function getConfirmedGoodsDonatedAttribute(): array
+    {
+        $donated = [];
+        $donations = $this->donations()
+            ->where('status', 'confirmed')
+            ->where('donation_type', 'goods')
+            ->with('items')
+            ->get();
+
+        foreach ($donations as $donation) {
+            foreach ($donation->items as $item) {
+                $key = $item->item_name;
+                $donated[$key] = ($donated[$key] ?? 0) + $item->quantity;
+            }
+        }
+
+        return $donated;
+    }
+
+    /**
+     * Overall goods progress percentage (average across all items, capped at 100).
+     */
+    public function getGoodsProgressPercentAttribute(): float
+    {
+        if (!$this->isGoods() || $this->items->isEmpty()) {
+            return 0;
+        }
+
+        $donated = $this->confirmed_goods_donated;
+        $totalPercent = 0;
+
+        foreach ($this->items as $item) {
+            $itemDonated = $donated[$item->item_name] ?? 0;
+            $totalPercent += min(100, ($item->quantity > 0 ? ($itemDonated / $item->quantity) * 100 : 0));
+        }
+
+        return min(100, round($totalPercent / $this->items->count(), 1));
+    }
+
+    /**
+     * Check if all goods items have been fully donated.
+     */
+    public function isGoodsGoalMet(): bool
+    {
+        if (!$this->isGoods() || $this->items->isEmpty()) {
+            return false;
+        }
+
+        $donated = $this->confirmed_goods_donated;
+
+        foreach ($this->items as $item) {
+            if (($donated[$item->item_name] ?? 0) < $item->quantity) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the overall goal (money or goods) has been met.
+     */
+    public function isGoalMet(): bool
+    {
+        if ($this->isMoney()) {
+            return $this->isMoneyGoalMet();
+        }
+        return $this->isGoodsGoalMet();
+    }
 }
